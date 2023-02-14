@@ -1,0 +1,18 @@
+{% extends 'auth/auth_base.html' %}
+
+{% block title %} Введіть СМС код {% endblock %}
+
+{% block main %}
+<p>
+    Ми відправили код на номер телефона : {{ phone_number }}. <br>
+    Введіть отриманий код нижче.
+</p>
+<form method="POST">
+{% csrf_token %}
+    <div class="sms_code">
+        {{ form.sms_code.errors }} <br>
+        {{ form.sms_code }} <br>
+    </div>
+    <button type="submit">Підтвердити код</button>
+</form>
+{% endblock %}

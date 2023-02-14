@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <title>{% block title%}{% endblock%}</title>
+
+    <link rel="stylesheet" href="{% static '/css/base.css' %}">
+</head>
+
+<body class="body">
+    <header class="header">
+        {% block header%}
+        {% endblock %}
+    </header>
+    <main class="main">
+        {% block main %}
+        {% endblock %}
+    </main>
+    <footer class="footer">
+        {%block footer%}
+        {% endblock %}
+    </footer>
+</body>
+</html>

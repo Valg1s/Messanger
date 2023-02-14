@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+asgiref = "==3.5.2"
+django = "==4.1"
+psycopg2 = "==2.9.3"
+pytz = "==2022.2.1"
+sqlparse = "==0.4.2"
+tzdata = "==2022.2"
+pillow = "==9.4.0"
+django-phonenumber-field = "==7.0.2"
+django-phonenumbers = "==1.0.1"
+django-sms = {extras = ["twilio"], version = "*"}
+
+[dev-packages]
+
+[requires]
+python_version = "3.10"

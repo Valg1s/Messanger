@@ -1,0 +1,17 @@
+{% extends 'auth/auth_base.html' %}
+
+{% block title %} Login {% endblock %}
+
+{% block main %}
+<form method="POST">
+{% csrf_token %}
+{% for field in form %}
+    <div class="fieldWrapper">
+        {{ field.errors }} <br>
+        {{ field.label_tag }} <br>
+        {{ field }} <br>
+    </div>
+{% endfor %}
+    <button type="submit">Надіслати смс</button>
+</form>
+{% endblock %}

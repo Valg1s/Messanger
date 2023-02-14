@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <title>{% block title%}{% endblock%}</title>
+
+    <link rel="stylesheet" href="{% static '/css/admin_base.css' %}">
+</head>
+
+<body class="auth_body">
+    <header class="auth_header">
+        {% block header%}
+        {% endblock %}
+    </header>
+    <main class="auth_main">
+        <div class="auth_content">
+            {% block main %}
+            {% endblock %}
+        </div>
+    </main>
+    <footer class="auth_footer">
+        {%block footer%}
+        {% endblock %}
+    </footer>
+</body>
+</html>

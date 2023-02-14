@@ -1,0 +1,27 @@
+{% extends 'auth/auth_base.html' %}
+
+{% block title %} Реєстрація {% endblock %}
+
+{% block main %}
+<form method="POST">
+{% csrf_token %}
+    <div style="display: flex">
+        <span>
+            {{ form.first_name.errors }}
+            {{form.first_name.label_tag}}<br>
+            {{form.first_name}}
+        </span>
+        <span>
+            {{ form.last_name.errors }}
+            {{form.last_name.label_tag}}<br>
+            {{form.last_name}}
+        </span>
+    </div>
+    <div style="display: flex">
+        {{ form.phone_number.errors }}
+        {{form.phone_number.label_tag}}
+        {{form.phone_number}}
+    </div>
+    <button type="submit">Зареєструватися</button>
+</form>
+{% endblock %}
