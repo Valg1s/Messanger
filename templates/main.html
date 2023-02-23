@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %} Месенджер {% endblock %}
+
+{% block header%}
+<form method="POST" style="display:flex;max-width: fit-content">
+    {{form.search_field}}
+    <button type="submit">Пошук</button>
+</form>
+{% endblock %}
+
+{% block main %}
+    {% for chat in chats %}
+        <div>
+            <a href="chat/{{chat.chat_id}}"> {{ chat.chat_name }} </a>
+            {% if chat.chat_last_message %}
+                <p>{{ chat.chat_last_message }}|{{ chat.chat_last_message.message_date|date:"H:i:s"}} </p>
+            {% else %}
+                <p>Нажаль, у цьому чаті немає повідомлень</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+{% endblock %}
+
+{% block footer %} {% endblock %}

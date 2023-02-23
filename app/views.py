@@ -1,13 +1,46 @@
 from random import randrange
 
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login , logout
 import sms
 
-from .forms import LoginForm, RegisterForm, CheckSmsCodeForm
-from .models import User
+from .forms import LoginForm, RegisterForm, CheckSmsCodeForm , SearchForm
+from .models import User, Chat
 
 
 # Create your views here.
+@login_required(login_url="/login/")
+def main(request):
+    if request.method == "POST":
+        form = SearchForm(request.POST)
+    else:
+        form = SearchForm()
+
+    user_id = request.user.user_id
+    user = User.get_by_id(user_id)
+    chats = Chat.objects.filter(user=user).all()
+
+    result = []
+    for chat in chats:
+        last_message = chat.message.order_by("-message_id").first()
+
+        result.append(
+            {
+                "chat_name": chat.take_name(user),
+                "chat_id":chat.chat_id,
+                "chat_last_message": last_message,
+
+            }
+        )
+
+    context = {
+        "form": form,
+        "chats": result,
+    }
+    return render(request, "main.html",context=context)
+
+
 def send_message(message, number):
     with sms.get_connection() as connection:
         sms.Message(message,
@@ -16,14 +49,7 @@ def send_message(message, number):
                     connection=connection).send()
 
 
-def check_auth(request):
-    if request.user.is_authenticated:
-        return render(request, "main.html")
-    else:
-        return redirect("auth:login")
-
-
-def register(request):
+def register_user(request):
     phone_number = request.session.get("phone_number", None)
 
     if request.method == "POST":
@@ -31,22 +57,23 @@ def register(request):
 
         if form.is_valid():
             first_name = form.cleaned_data["first_name"]
-            last_name = form.cleaned_data["last_name"]
+            second_name = form.cleaned_data["second_name"]
             phone_number = str(form.cleaned_data["phone_number"])
 
             security_code = randrange(10000, 99999, 1)
 
-            message = f'Добрий день, {first_name} {last_name}, ви ввели цей номер при реєстрації.' \
+            message = f'Добрий день, {first_name} {second_name}, ви ввели цей номер при реєстрації.' \
                       f' Ваш код: {security_code}. Не повідомляйте цей код третім особам.Якщо ви не' \
                       f' реєструвалися,просто ігноруйте це повідомлення'
 
-            send_message(message, phone_number)
+            #send_message(message, phone_number)
+            print(message)
 
-            request.session["user_data"] = {"first_name": first_name, "last_name": last_name,
+            request.session["user_data"] = {"first_name": first_name, "second_name": second_name,
                                             "phone_number": phone_number, "security_code": security_code,
-                                            "priv_page": "auth:register"}
+                                            "priv_page": "messanger:register"}
 
-            return redirect("auth:check_sms_code")
+            return redirect("messanger:check_sms_code")
     else:
         if phone_number:
             form = RegisterForm({'phone_number': phone_number})
@@ -57,7 +84,8 @@ def register(request):
     return render(request, "auth/register.html", context=context)
 
 
-def login(request):
+def login_user(request):
+    print(request.user)
     if request.method == "POST":
         form = LoginForm(request.POST)
 
@@ -74,14 +102,14 @@ def login(request):
                 print(message)
 
                 request.session["user_data"] = {"user_id": user.user_id, "security_code": security_code,
-                                                "phone_number": phone_number, "priv_page": "auth:login"}
+                                                "phone_number": phone_number, "priv_page": "messanger:login"}
 
-                return redirect("auth:check_sms_code")
+                return redirect("messanger:check_sms_code")
 
             else:
                 request.session["phone_number"] = phone_number
 
-                return redirect('auth:register')
+                return redirect('messanger:register')
     else:
         form = LoginForm()
 
@@ -100,13 +128,23 @@ def check_sms_code(request):
                 sms_code = form.cleaned_data["sms_code"]
 
                 if sms_code == user_data["security_code"]:
-                    print("Код зівпав")
-                    if user_data["priv_page"] == "auth:login":
-                        pass
-                        #login
+
+                    if user_data["priv_page"] == "messanger:login":
+                        user_id = user_data.get("user_id")
+                        user = User.get_by_id(user_id)
                     else:
-                        pass
-                        #register
+                        first_name = user_data["first_name"]
+                        second_name = user_data["second_name"]
+                        phone_number = user_data["phone_number"]
+
+                        user = User.create(first_name,second_name,phone_number)
+
+                    user.is_active = True
+                    user.save()
+
+                    login(request,user)
+                    return redirect("messanger:main")
+
                 else:
                     form.add_error("sms_code","Ви ввели неправильний код")
 
@@ -121,4 +159,11 @@ def check_sms_code(request):
         return render(request, "auth/check_sms_code.html", context=context)
 
     else:
-        return redirect("auth:login")
+        return redirect("messanger:login")
+
+
+@login_required(login_url="/login/")
+def logout_user(request):
+    logout(request)
+
+    return redirect("messanger:login")
