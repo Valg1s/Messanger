@@ -1,5 +1,5 @@
 """
-ASGI config for messanger project.
+ASGI config for Messanger project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'messanger.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Messanger.settings')
 
 application = get_asgi_application()
