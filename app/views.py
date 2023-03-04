@@ -2,11 +2,11 @@ from random import randrange
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login , logout
+from django.contrib.auth import login, logout
 import sms
 
-from .forms import LoginForm, RegisterForm, CheckSmsCodeForm , SearchForm
-from .models import User, Chat
+from .forms import LoginForm, RegisterForm, CheckSmsCodeForm, SearchForm, SendMessageForm
+from .models import User, Chat, Message
 
 
 # Create your views here.
@@ -14,6 +14,45 @@ from .models import User, Chat
 def main(request):
     if request.method == "POST":
         form = SearchForm(request.POST)
+
+        if form.is_valid():
+            field = form.cleaned_data.get("search_field")
+
+            name = field.split(' ')
+            user = None
+            users = None
+
+            if len(name) == 2:
+                user = User.objects.filter(first_name=name[0], second_name=name[1]).first() or \
+                       User.objects.filter(first_name=name[1], second_name=name[0]).first()
+
+            if not user:
+                user = User.objects.filter(account_name=field).first() or \
+                       User.objects.filter(phone_number=field).first()
+                users = User.objects.filter(first_name=field).all() or \
+                        User.objects.filter(first_name=field).all()
+
+            if user:
+                user_pare = [user, request.user]
+                general_chats = Chat.objects.filter(user__in=user_pare).all()
+
+                personal_chat = None
+
+                if general_chats:
+                    for chat in general_chats:
+                        if len(chat.user.all()) == 2:
+                            personal_chat = chat
+                            break
+
+                if not personal_chat:
+                    personal_chat = Chat.create(user_pare)
+
+                return redirect("messanger:chat", chat_id=personal_chat.chat_id)
+
+            if users:
+                request.session['users'] = users
+                return
+
     else:
         form = SearchForm()
 
@@ -28,9 +67,8 @@ def main(request):
         result.append(
             {
                 "chat_name": chat.take_name(user),
-                "chat_id":chat.chat_id,
+                "chat_id": chat.chat_id,
                 "chat_last_message": last_message,
-
             }
         )
 
@@ -38,7 +76,43 @@ def main(request):
         "form": form,
         "chats": result,
     }
-    return render(request, "main.html",context=context)
+    return render(request, "main.html", context=context)
+
+def search_users(request):
+    users = request.session.get('users',None)
+
+    context = {
+        "users": users,
+    }
+
+
+
+
+@login_required(login_url="/login/")
+def chat(request, chat_id):
+    cur_chat = Chat.get_by_id(chat_id)
+    cur_user = request.user
+
+    if cur_user in cur_chat.user.all():
+        if request.method == "POST":
+            form = SendMessageForm(request.POST)
+
+            if form.is_valid():
+                message_text = form.cleaned_data["message"]
+                message = Message.create(cur_user, message_text)
+
+                cur_chat.add_message(message)
+
+        form = SendMessageForm()
+
+        context = {
+            "form": form,
+            "chat_name": cur_chat.take_name(request.user),
+            "messages": cur_chat.message.all()
+        }
+        return render(request, "chat.html", context)
+    else:
+        return redirect("messanger:main")
 
 
 def send_message(message, number):
@@ -66,7 +140,7 @@ def register_user(request):
                       f' Ваш код: {security_code}. Не повідомляйте цей код третім особам.Якщо ви не' \
                       f' реєструвалися,просто ігноруйте це повідомлення'
 
-            #send_message(message, phone_number)
+            # send_message(message, phone_number)
             print(message)
 
             request.session["user_data"] = {"first_name": first_name, "second_name": second_name,
@@ -98,7 +172,7 @@ def login_user(request):
                 security_code = randrange(10000, 99999, 1)
                 message = f"Добрий день, {user.first_name} {user.second_name}. Ваш код авторизації {security_code}"
 
-                #send_message(message, phone_number)
+                # send_message(message, phone_number)
                 print(message)
 
                 request.session["user_data"] = {"user_id": user.user_id, "security_code": security_code,
@@ -137,16 +211,16 @@ def check_sms_code(request):
                         second_name = user_data["second_name"]
                         phone_number = user_data["phone_number"]
 
-                        user = User.create(first_name,second_name,phone_number)
+                        user = User.create(first_name, second_name, phone_number)
 
                     user.is_active = True
                     user.save()
 
-                    login(request,user)
+                    login(request, user)
                     return redirect("messanger:main")
 
                 else:
-                    form.add_error("sms_code","Ви ввели неправильний код")
+                    form.add_error("sms_code", "Ви ввели неправильний код")
 
         else:
             form = CheckSmsCodeForm()

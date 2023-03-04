@@ -118,7 +118,7 @@ class Message(models.Model):
     message_date = models.DateTimeField(default=timezone.now())
 
     def __str__(self):
-        return f"{self.message_sender}: {self.message_text}"
+        return f"{self.message_text}"
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.message_id})"
@@ -153,7 +153,8 @@ class Chat(models.Model):
     message = models.ManyToManyField(Message,related_name="Chat_Message",null=True)
 
     def __str__(self):
-        users = self.user.objects.filter(chat_id=self.chat_id).all()
+        users = map(lambda x: str(x) ,self.user.all())
+
         return ",".join(users)
 
     def __repr__(self):
@@ -183,6 +184,9 @@ class Chat(models.Model):
 
         return name
 
+    @staticmethod
+    def get_by_id(id):
+        return Chat.objects.filter(chat_id=id).first()
 
     @staticmethod
     def create(users):

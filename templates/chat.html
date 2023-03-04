@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %} {{ chat_name }} {% endblock %}
+
+{% block main %}
+<div>
+    <a href="/" >Назад</a>
+    <h2 style="text-align:center">{{ chat_name }}</h2>
+</div>
+<div>
+    {% for message in messages %}
+        {% if message.message_sender.user_id == user.user_id %}
+            <div style="text-align: right">
+                <p> Ви | {{ message.message_date|date:"j M, H:i:s" }} </p>
+                <p> {{ message.message_text }} </p>
+            </div>
+        {% else %}
+            <div style="text-align: left">
+                <p> {{ message.message_sender }} | {{ message.message_date|date:"j M, H:i:s" }} </p>
+                <p> {{ message.message_text }}  </p>
+            </div>
+        {% endif %}
+
+    {% endfor %}
+</div>
+<div>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.message }}
+        <button type="submit">Надіслати</button>
+    </form>
+</div>
+{% endblock %}

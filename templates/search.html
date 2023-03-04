@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block title %} Пошук {% endblock %}
+
+{% block main %}
+    {% for user in users %}
+        {{ user }}
+    {% endfor %}
+{% endblock %}

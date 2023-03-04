@@ -22,3 +22,9 @@ class SearchForm(forms.Form):
                                                                  "placeholder": "Введі ім'я користувача,назву аккаунта"
                                                                                 " користувача чи номер телефону"
                                                                                 " з кодом країни"}))
+
+
+class SendMessageForm(forms.Form):
+    message = forms.CharField(min_length=1, max_length=1024,
+                              widget=forms.TextInput(attrs={"max-width": "fit-content",
+                                                           "placeholder": "Ваше повідомлення..."}))
