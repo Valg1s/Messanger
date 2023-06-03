@@ -1,0 +1,16 @@
+{% extends 'auth/auth_base.html' %}
+
+{% block body %}
+    <div class="login">
+    <div class="container">
+      <div class="login__box"></div>
+      <form action="" class="login__form">
+        {% csrf_token %}
+        <input id="login_email" class="login__email" type="email" placeholder="*Email">
+        <p class="login__error red-error">Невірний формат email!</p>
+        <a class="login__link link-about" href="#">Дізнатися більше про нас</a>
+        <input id="login_btn" class="login__btn bo-btn" type="submit">
+      </form>
+    </div>
+  </div>
+{% endblock %}

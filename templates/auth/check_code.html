@@ -1,0 +1,30 @@
+{% load static %}
+
+<div class="check" style="background-image: url({% static 'images/login-bg.svg' %});">
+      <div class="container">
+  
+        <div class="check__inner">
+  
+          <div class="login__box">
+  
+            <img src="{% static 'images/check-img.png' %}" alt="decor img" class="form__box-img">
+  
+          </div>
+          
+          <!-- form login -->
+          <form class="check__box form-check form">
+            {% csrf_token %}
+            <h2 class="form__title form-check__title">Введіть код з пошти {{email}}</h2>
+            <!-- class form-input for style, class form-login__input for back and semantic -->
+            <input class="form-input form-check__input" id="check__code" type="number" name="code" placeholder="Код з листа">
+            <!-- class form__error for semantic and back, class red-error for style -->
+            <p class="form-check__error red-error">Невірний код!</p>
+            <button id="check__sendcode" class="form-сheck__send-code">Відправити код ще раз</button>
+            <!-- class form__brn for semantic and back, class btn-submit for style -->
+            <button id="check__log" class="form__btn btn-submit">Увійти</button>
+          </form>
+  
+        </div>
+  
+      </div>
+    </div>

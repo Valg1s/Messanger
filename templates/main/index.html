@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="uk">
+{% load static %}
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+
+  <!-- google fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Roboto&display=swap" rel="stylesheet">
+
+  <!-- css style -->
+  <link rel="stylesheet" href="{% static 'css/main_style.css' %}">
+
+  <script src="{% static 'js/axios.min.js' %}"></script>
+  <script src="{% static 'js/script.js' %}" defer></script>
+
+</head>
+<body>
+  
+  <main class="chats__wrapper" style="background-image: url({% static 'images/chat-bg.svg' %});">
+    <div class="chats">
+
+      <div class="chats__sidebar sidebar">
+        <div class="sidebar__top current-user h-100">
+          <img src="{% static 'images/user.png' %}" alt="Current user photo" class="current-user__img">
+          <p class="current-user__name user-name">{{ user.first_name}} {{ user.last_name}}</p>
+          <img src="{% static 'images/search.svg' %}" alt="search icon" class="search">
+          <img src="{% static 'images/setting.svg' %}" alt="setting icon" class="setting">
+        </div>
+
+        <div class="sidebar__list list-chats">
+          <ul class="chats__list">
+            {% if chats %}
+              {% for chat in chats %}
+                <li class="chats__item">
+                  <a href="/{{chat.chat_id}}" class="chats__link">
+                    <img src="{% static 'images/user.png' %}" alt="user photo" class="chats__user-img">
+                    <div class="chats__text">
+                      <p class="chats__user-name user-name">{{ chat.user.first_name }} {{ chat.user.last_name }}</p>
+                      <p class="chats__user-message">{{ chat.last_message }}</p>
+                    </div>
+                    <div class="chats__notification notification-active">
+                    </div>
+                  </a>
+                </li>
+              {% endfor %}
+            {% else %}
+              <p>У вас,поки,немає чатів...</p>
+            {% endif %}
+          </ul>
+        </div>
+      
+      </div>
+      
+      <div id="main__chat" class="chats__correspondence correspondence">
+          {% block chat %}Для початку - оберіть чат...{% endblock %}
+      </div>
+    
+    </div>
+  </main>
+
+</body>
+</html>

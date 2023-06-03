@@ -1,0 +1,35 @@
+
+{% load static %}
+
+  <div class="register" style="background-image: url({% static 'images/login-bg.svg' %});">
+    <div class="container">
+
+      <div class="register__inner">
+
+        <div class="register__box">
+
+          <img src="{% static 'images/register-img.png' %}" alt="decor img" class="form__box-img">
+
+        </div>
+        
+        <!-- form login -->
+        <form class="register__box form-login form">
+          {% csrf_token %}
+          <h2 class="register__title form-register__title">Введіть дані для реєстрації</h2>
+          <!-- class form-input for style, class form-login__input for back and semantic -->
+          <input class="form-input form-register__input form-email__input" id="register__email" type="email" name="mail" placeholder="Email" readonly>
+          <input class="form-input form-register__input" id="register__fname" type="email" name="mail" placeholder="Ім'я">
+          <p class="form-register__error red-error">Заповніть поле!</p>
+          <input class="form-input form-register__input" id="register__lname" type="email" name="mail" placeholder="Прізвище">
+          <p class="form-register__error red-error">Заповніть поле!</p>
+          <input class="form-input form-register__input" id="register__nickname" type="email" name="mail" placeholder="Нікнейм">
+          <!-- class form__error for semantic and back, class red-error for style -->
+          <p class="form-register__error red-error">Такий нікнейм вже існує!</p>
+          <!-- class form__brn for semantic and back, class btn-submit for style -->
+          <button id="register__btn" class="form__btn form-register__btn btn-submit">Зареєструватися</button>
+        </form>
+
+      </div>
+
+    </div>
+  </div>
