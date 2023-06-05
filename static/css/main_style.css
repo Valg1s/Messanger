@@ -278,3 +278,16 @@ html{
 .like-left::before{
 	left: -10px;	
 }
+
+.correspondence__message{
+	overflow-y: scroll;
+	height: calc(100vh - 100px);
+	display: flex;
+	flex-direction: column;
+	justify-content: end;
+}
+
+.correspondence__input-box{
+  position: sticky;
+  bottom: 0;
+}

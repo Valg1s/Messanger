@@ -13,6 +13,11 @@ function getCookie(name) {
     return cookieValue;
 }
 
+function activate_error(error_name){
+    let x = document.getElementById(`for-${error_name}`);
+    x.classList.add('form-input__active');
+}
+
 function email_validation(email) {
     let validRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 
@@ -23,18 +28,42 @@ function email_validation(email) {
     }
 }
 
+function checkError(text) {
+    let name = text.getAttribute('id'); 
+    let x = document.getElementById(`for-${name}`);
+    if(text.value.trim() === ""){
+      // let x = `for-${name}`;
+      x.classList.add('form-input__active');
+    }
+    else{
+      x.classList.remove('form-input__active');
+    }
+    // alert(x)
+  }
+  
+  function checkErrors() {
+    let inputs = document.querySelectorAll('.form-input');
+    for(let element of inputs){
+      if(element.value.trim() === ""){
+        let name = element.getAttribute('id');
+        activate_error(name);
+        // alert(element.getAttribute('id'));
+      }
+    }
+  }
+
 window.addEventListener("load", (event) => {
     if (window.location.pathname == "/auth/") {
         let login_btn = document.getElementById("login__btn");
 
         login_btn.addEventListener("click", function (event) {
             event.preventDefault();
+
             let email = document.getElementById("login__email").value;
 
             validation = email_validation(email);
 
             if (validation) {
-
                 let expire_time = new Date();
 
                 expire_time.setTime(expire_time.getTime() + (10 * 60 * 1000))
@@ -71,14 +100,17 @@ window.addEventListener("load", (event) => {
                     }
 
                 }).catch((error) => {
-                    alert(error);
-                    //add class "active" to error box
+                    activate_error('login__email');
                 })
+            }else{
+                activate_error('login__email');
             }
         })
 
         function sendRegistrationData(event) {
             event.preventDefault();
+
+            checkErrors();
 
             fname = document.getElementById("register__fname").value;
             lname = document.getElementById("register__lname").value;
@@ -111,22 +143,25 @@ window.addEventListener("load", (event) => {
                 }).catch((error) => {
                     let error_field = error.response.data;
 
-                    console.log(error_field);
+                    
+                    for (let key in error_field){
+                        if (key == "first_name"){
+                            activate_error("register__fname");
+                        }else if (key == "last_name") {
+                            activate_error("register__lname");
+                        }else{
+                            activate_error("register__nickname");
+                        }
+                    }
+
                 })
-            } else {
-                if (!fname) {
-                    //add class "active" to error box
-                }
-
-                if (!lname) {
-                    //add class "active" to error box
-                }
             }
-
         }
 
         function sendCodeData(event) {
             event.preventDefault();
+
+            checkErrors();
 
             let code = document.getElementById("check__code").value;
 
@@ -147,7 +182,8 @@ window.addEventListener("load", (event) => {
             ).then((response) => {
                 window.location.href = '/';
             }).catch((error) => {
-                //add class "active" to error box
+                console.log(error)
+                activate_error("check__code")
             })
         }
 
@@ -178,34 +214,86 @@ window.addEventListener("load", (event) => {
         }
 
     } else {
+        
+        function add_last_message(chat_id, message){
+            
+            let chat = document.getElementById(`chat__${chat_id}`);
+
+            chat.getElementsByClassName("chats__user-message")[0].innerText  = message;  
+
+            let chatItem = chat.closest('.chats__item');
+            let chatList = chatItem.parentNode;
+            
+            chatList.prepend(chatItem);
+        }
 
         const sk = new WebSocket(
             'ws://'
             + window.location.host
             + '/ws/chat/'
         )
+        
+        if (window.location.pathname != "/"){
+            let chat = document.querySelector(".correspondence__message");
 
-        sk.onopen = function() {
-            console.log('WebSocket connection established.');
-            
-            const data = {
-                chat_id: 1,
-                message: "Hello!" 
-              };
+            chat.scrollTo(0, chat.scrollHeight);
 
-            sk.send(JSON.stringify(data));
-            // Дополнительная логика, выполняемая после успешного установления соединения
-          };
+            let send_button = document.getElementById("chat__sendbutton");
+
+            send_button.addEventListener("click" , (event) => {
+                event.preventDefault();
+
+                let message = document.getElementById('chat__message');
+                
+                if ( 1 > message.value.length > 512){
+                    return
+                }
+
+                let chat_id = window.location.pathname.slice(1,-1);
+
+                let data = {
+                    "chat_id": chat_id,
+                    "message": message.value,
+                }
+
+                sk.send(JSON.stringify(data));
+
+                let no_messages_p = document.getElementById("chat__nomessages");
+                if(no_messages_p){
+                    no_messages_p.remove();
+                }
+                
+                document.getElementById("new__messages").innerHTML += `<p class="messages__curent-user user-massage">${message.value}</p>`
+                
+                add_last_message(chat_id, message.value);
+
+                message.value = "";
+
+                let chat = document.querySelector(".correspondence__message");
+
+                chat.scrollTo(0, chat.scrollHeight);
+            })
+        }
 
         sk.onmessage = function(event) {
-            const message = event.data;
-            console.log('Received message:', message);
-            // Дополнительная логика, выполняемая при получении сообщения от сервера
-          };
-          
-          sk.onclose = function() {
-            console.log('WebSocket connection closed.');
-            // Дополнительная логика, выполняемая при закрытии соединения
+
+            const message = JSON.parse(event.data);
+            console.log(window.location.pathname == `/${message.chat_id}/`)
+            if (window.location.pathname == `/${message.chat_id}/`){
+                document.getElementById("new__messages").innerHTML += `<p class="messages__other-user user-massage">${message.message}</p>`
+                
+                let no_messages_p = document.getElementById("chat__nomessages");
+                
+                if(no_messages_p){
+                    no_messages_p.remove();
+                }
+
+                let chat = document.querySelector(".correspondence__message");
+
+                chat.scrollTo(0, chat.scrollHeight);
+            };
+            
+            add_last_message(message.chat_id, message.message);
           };
     }
 

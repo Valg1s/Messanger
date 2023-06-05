@@ -3,18 +3,20 @@ import json
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.sessions.models import Session
-from app.models import CustomUser, Chat
+
+from app.models import CustomUser, Chat, Message
 
 
 class ChatWebSocket(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.user_id = await self.get_user_id()
-
-        await self.channel_layer.group_add(f"user_{self.user_id}",self.channel_name)
+        await self.change_is_active(True)
+        await self.channel_layer.group_add(f"user_{self.user_id}", self.channel_name)
         await self.accept()
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.user_id, self.channel_name)
+        await self.change_is_active(False)
+        await self.channel_layer.group_discard(f"user_{self.user_id}", self.channel_name)
         await self.close()
 
     async def receive(self, text_data):
@@ -22,21 +24,19 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
         message = data['message']
         chat_id = data['chat_id']
 
+        await self.add_message_to_chat(chat_id,message)
+
         recipient_id = await self.get_recipient_id(chat_id)
 
-        await self.send_to_user(f"user_{recipient_id}", message)
+        await self.send_to_user(f"user_{recipient_id}", chat_id, message)
 
-    async def send_to_user(self, recipient, message):
-        recipient_channel = await self.get_recipient_channel(recipient)
-        if recipient_channel:
-            await self.channel_layer.send(recipient_channel, {'type': 'send.message', 'message': message})
-
-    async def get_recipient_channel(self, recipient):
-        return await self.channel_layer.group_channels(recipient).get()
+    async def send_to_user(self, recipient, chat_id, message):
+        await self.channel_layer.group_send(recipient, {'type': 'send.message', 'message': message, 'chat_id': chat_id})
 
     async def send_message(self, event):
         message = event['message']
-        await self.send(text_data=json.dumps({'message': message}))
+        chat_id = event['chat_id']
+        await self.send(text_data=json.dumps({"chat_id": chat_id, 'message': message}))
 
     @sync_to_async
     def get_user_id(self):
@@ -63,4 +63,19 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
         chat = Chat.objects.get(chat_id=chat_id)
         recipient_id = chat.get_second_user(current_user)
 
-        return recipient_id
+        return recipient_id.user_id
+
+    @sync_to_async
+    def add_message_to_chat(self, chat_id, message_text):
+        chat = Chat.objects.get(chat_id=chat_id)
+        user = CustomUser.objects.get(user_id=self.user_id)
+
+        message = Message.create(user, message_text)
+
+        chat.messages.add(message.message_id)
+
+    @sync_to_async
+    def change_is_active(self, status):
+        user = CustomUser.objects.get(user_id=self.user_id)
+        user.is_active = status
+        user.save()

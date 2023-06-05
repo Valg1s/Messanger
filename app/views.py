@@ -1,6 +1,7 @@
 import json
 from collections import defaultdict
 from random import randint
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login
@@ -33,7 +34,6 @@ def get_random_code(request: 'WSGIRequest') -> int:
     code = randint(100000, 1000000)
 
     request.session['code'] = code
-
     return code
 
 
@@ -68,17 +68,22 @@ def send_email_code(request, email) -> None:
 
 
 def get_context_for_chat(current_user):
-    user_chats = Chat.objects.filter(users=current_user).all()
+    user_chats = Chat.get_sorted_chats(current_user)
 
     chats = []
 
     for chat in user_chats:
         second_user = chat.get_second_user(current_user)
 
+        message = chat.messages.last()
+        last_message = "Повідомлень ще немає..."
+        if message:
+            last_message = message.text
+
         chats.append({
             "chat_id": chat.chat_id,
             "user": second_user,
-            "last_message": chat.messages.last().text
+            "last_message": last_message,
         })
 
     return chats
@@ -114,6 +119,9 @@ class RegisterUserView(View):
 class CheckUserAccountView(View):
     def post(self, request):
         email = decode_request(request)['email']
+
+        if request.session.get("registered_data"):
+            request.session.remove("registered_data")
 
         try:
             validate_email(email)

@@ -18,13 +18,19 @@
           <h2 class="register__title form-register__title">Введіть дані для реєстрації</h2>
           <!-- class form-input for style, class form-login__input for back and semantic -->
           <input class="form-input form-register__input form-email__input" id="register__email" type="email" name="mail" placeholder="Email" readonly>
-          <input class="form-input form-register__input" id="register__fname" type="email" name="mail" placeholder="Ім'я">
-          <p class="form-register__error red-error">Заповніть поле!</p>
-          <input class="form-input form-register__input" id="register__lname" type="email" name="mail" placeholder="Прізвище">
-          <p class="form-register__error red-error">Заповніть поле!</p>
-          <input class="form-input form-register__input" id="register__nickname" type="email" name="mail" placeholder="Нікнейм">
+          <input class="form-input form-register__input" id="register__fname" type="text" name="fname" placeholder="Ім'я" onchange="checkError(this)">
+          <span class="error-wrapper">
+            <p id="for-register__fname" class="form-error form-register__error red-error">Заповніть поле!</p>
+          </span>
+          <input class="form-input form-register__input" id="register__lname" type="text" name="lname" placeholder="Прізвище" onchange="checkError(this)">
+          <span class="error-wrapper">
+            <p id="for-register__lname" class="form-error form-register__error red-error">Заповніть поле!</p>
+          </span>
+          <input class="form-input form-register__input" id="register__nickname" type="text" name="nickname" placeholder="Нікнейм" onchange="checkError(this)">
           <!-- class form__error for semantic and back, class red-error for style -->
-          <p class="form-register__error red-error">Такий нікнейм вже існує!</p>
+          <span class="error-wrapper">
+            <p id="for-register__nickname" class="form-register__error red-error form-error">Такий нікнейм вже існує або перевірте чи порожнє ваше поле!</p>
+          </span>
           <!-- class form__brn for semantic and back, class btn-submit for style -->
           <button id="register__btn" class="form__btn form-register__btn btn-submit">Зареєструватися</button>
         </form>

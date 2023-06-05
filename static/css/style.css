@@ -186,3 +186,23 @@ body{
 .form-register__btn{
   margin-top: 30px;
 }
+
+
+.form-error{
+  display: none;
+}
+
+.form-input__active{
+  display: block;
+}
+
+.error-wrapper{
+  height: calc(20px * 1.21);
+  display: block;
+  max-width: 290px;
+}
+
+.login__error-wrapper,
+.check__error-wrapper{
+  margin-bottom: 70px;
+}

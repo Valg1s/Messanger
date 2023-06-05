@@ -37,7 +37,7 @@
             {% if chats %}
               {% for chat in chats %}
                 <li class="chats__item">
-                  <a href="/{{chat.chat_id}}" class="chats__link">
+                  <a id="chat__{{ chat.chat_id }}" href="/{{chat.chat_id}}" class="chats__link">
                     <img src="{% static 'images/user.png' %}" alt="user photo" class="chats__user-img">
                     <div class="chats__text">
                       <p class="chats__user-name user-name">{{ chat.user.first_name }} {{ chat.user.last_name }}</p>
