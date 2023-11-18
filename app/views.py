@@ -8,13 +8,13 @@ from django.contrib.auth import authenticate, login
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.core.mail import get_connection, EmailMessage
-from django.core.validators import validate_email
 from django.shortcuts import render, HttpResponse, Http404
 from django.template.loader import render_to_string
 from django.views import View
 
 from .forms import UserForm
 from .models import CustomUser, Chat
+from .validators import CustomEmailValidator
 
 
 def decode_request(request):
@@ -123,10 +123,15 @@ class CheckUserAccountView(View):
         if request.session.get("registered_data"):
             request.session.remove("registered_data")
 
+        email_validator = CustomEmailValidator()
+
         try:
-            validate_email(email)
-        except ValidationError:
-            result = HttpResponse(status=400)
+            email_validator(email)
+        except ValidationError as e:
+            data = {
+                "message": e.message,
+            }
+            result = HttpResponse(json.dumps(data), content_type='application/json',status=400)
         else:
             user = authenticate(request, email=email)
 

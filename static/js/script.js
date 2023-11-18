@@ -1,3 +1,5 @@
+let invalid_emails = [".ru",".by"]
+
 function getCookie(name) {
     var cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -29,7 +31,7 @@ function email_validation(email) {
 }
 
 function checkError(text) {
-    let name = text.getAttribute('id'); 
+    let name = text.getAttribute('id');
     let x = document.getElementById(`for-${name}`);
     if(text.value.trim() === ""){
       // let x = `for-${name}`;
@@ -62,6 +64,13 @@ window.addEventListener("load", (event) => {
             let email = document.getElementById("login__email").value;
 
             validation = email_validation(email);
+
+            let is_invalid_email = false
+
+            if (invalid_emails.some(ending=>email.endsWith(ending))){
+                validation = false
+                is_invalid_email = true
+            }
 
             if (validation) {
                 let expire_time = new Date();
@@ -100,10 +109,16 @@ window.addEventListener("load", (event) => {
                     }
 
                 }).catch((error) => {
-                    activate_error('login__email');
+                    activate_error(error.response.data.message);
                 })
             }else{
-                activate_error('login__email');
+                let error = 'login__email'
+
+                if (is_invalid_email){
+                    error = 'ru__email'
+                }
+
+                activate_error(error);
             }
         })
 
