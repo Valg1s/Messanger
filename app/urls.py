@@ -11,5 +11,5 @@ urlpatterns = [
     re_path(r'^login_user/', views.LoginUserView.as_view()),
     re_path(r'^(?P<chat_id>\d+)/$', views.ChatView.as_view()),
     re_path(r'send_code/', views.SendEmailView.as_view()),
-    #re_path(r'^ws/chat/$', consumers.ChatWebSocket.as_asgi())
+    re_path("^search_users/", views.PeopleSearchView.as_view()),
 ]

@@ -1,7 +1,7 @@
 import json
 from collections import defaultdict
+from itertools import chain
 from random import randint
-from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login
@@ -131,7 +131,7 @@ class CheckUserAccountView(View):
             data = {
                 "message": e.message,
             }
-            result = HttpResponse(json.dumps(data), content_type='application/json',status=400)
+            result = HttpResponse(json.dumps(data), content_type='application/json', status=400)
         else:
             user = authenticate(request, email=email)
 
@@ -239,4 +239,22 @@ class ChatView(View):
         return render(request, "main/chat.html", context=context)
 
 
+class PeopleSearchView(View):
+    def post(self, request):
+        search_input = decode_request(request)['search_input']
 
+        account_name_search = CustomUser.objects.filter(account_name__startswith=search_input)
+        first_name_search = CustomUser.objects.filter(first_name__startswith=search_input)
+        last_name_search = CustomUser.objects.filter(last_name__startswith=search_input)
+
+        data = {"users": []}
+        for user in chain(account_name_search, first_name_search, last_name_search):
+            data["users"].append(
+                {
+                    "user_id": user.user_id,
+                    "user_name": f"{user.first_name} {user.last_name}",
+                    "user_account_name": user.account_name,
+                }
+            )
+
+        return HttpResponse(json.dumps(data), content_type='application/json')

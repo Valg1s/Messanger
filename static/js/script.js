@@ -345,3 +345,44 @@ document.addEventListener('click', (e) => {
         }
     }
 })
+
+function searchPeople(input){
+    let input_text = input.value;
+    let people_list = document.getElementById("searched-people") 
+
+    let csrf_token = getCookie('csrftoken');
+    let data = {
+        "search_input": input_text,
+    }
+
+    axios.post("/search_users/",
+        data,
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                "X-CSRFToken": csrf_token,
+            }
+        },
+        ).then((response) => {
+            people_list.innerHTML = '';
+
+        response.data.forEach(element => {
+            let option = document.createElement('option');
+            option.value = `${element.user_id} ${element.user_name} ${element.user_account_name}`;
+            
+            // Create a link element
+            let link = document.createElement('a');
+            link.href = '#';
+            link.textContent = `${element.user_id} ${element.user_name} ${element.user_account_name}`;
+
+            // Append the link to the option
+            option.appendChild(link);
+
+            // Append the option to the datalist
+            people_list.appendChild(option);
+        })
+        }).catch((error) => {
+            console.log(error)
+        }) 
+
+}
