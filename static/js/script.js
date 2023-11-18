@@ -299,4 +299,34 @@ window.addEventListener("load", (event) => {
 
 });
 
+// search
+const searchButton = document.querySelector('.search');
+const searchInput = document.querySelector('.search-people');
+searchButton.addEventListener('click', function () {
+    searchInput.classList.toggle('active');
+    if(searchInput.classList.contains('active'))
+    {
+        searchInput.readOnly = false;
+    }
+    else{
+        searchInput.readOnly = true;
+    }
+})
 
+const sidebarTop = document.querySelector('.current-user');
+document.addEventListener('click', (e) => {
+    if(searchInput.classList.contains('active'))
+    {
+        const withinInput = e.composedPath().includes(sidebarTop);
+        if(!withinInput) {
+            searchInput.classList.remove('active');
+            if(searchInput.classList.contains('active'))
+            {
+                searchInput.readOnly = false;
+            }
+            else{
+                searchInput.readOnly = true;
+            }
+        }
+    }
+})

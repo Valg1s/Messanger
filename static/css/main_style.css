@@ -99,6 +99,7 @@ html{
 .sidebar__list{
 	overflow-y: scroll;
 	height: calc(100vh - 100px);
+	background-color: #fff;
 }
 
 
@@ -115,8 +116,19 @@ html{
 }
 
 .current-user{
+	position: relative;
 	background-color: var(--color-black);
   color: var(--сolor-white);
+}
+
+.search-people{
+	position: absolute;
+	display: block;
+	transform: translateX(-300%);
+	transition: all .3s;
+}
+.search-people.active{
+	transform: translateX(0%);
 }
 
 .current-user__name,
