@@ -31,12 +31,11 @@
           <img src="{% static 'images/search.svg' %}" alt="search icon" class="search">
           <img src="{% static 'images/setting.svg' %}" alt="setting icon" class="setting">
           {% csrf_token %}
-          <input class="search-people"type="text" readonly onchange="searchPeople(this)">
+          <input class="search-people" type="text" readonly onchange="searchPeople(this)">
         </div>
 
         <div class="sidebar__list list-chats">
-          <ul class="chats__list">
-            {% if chats %}
+          <ul id="chat__list" class="chats__list">
               {% for chat in chats %}
                 <li class="chats__item">
                   <a id="chat__{{ chat.chat_id }}" href="/{{chat.chat_id}}" class="chats__link">
@@ -49,10 +48,9 @@
                     </div>
                   </a>
                 </li>
-              {% endfor %}
-            {% else %}
-              <p>У вас,поки,немає чатів...</p>
-            {% endif %}
+              {% empty %}
+                <p>У вас,поки,немає чатів...</p>
+            {% endfor %}
           </ul>
         </div>
       

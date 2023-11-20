@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate, login
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.core.mail import get_connection, EmailMessage
-from django.shortcuts import render, HttpResponse, Http404
+from django.shortcuts import render, HttpResponse, Http404, redirect
 from django.template.loader import render_to_string
 from django.views import View
 
@@ -258,3 +258,15 @@ class PeopleSearchView(View):
             )
 
         return HttpResponse(json.dumps(data), content_type='application/json')
+
+
+class CreateChatView(View):
+    def get(self,request,user_id):
+        try:
+            second_user = CustomUser.objects.get(pk=user_id)
+        except:
+            return redirect("index")
+
+        chat = Chat.create(request.user, second_user)
+
+        return redirect("chat",chat_id=chat.chat_id)

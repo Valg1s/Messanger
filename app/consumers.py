@@ -4,6 +4,7 @@ from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.sessions.models import Session
 
+from Messanger.settings import STATIC_URL, MEDIA_URL
 from app.models import CustomUser, Chat, Message
 
 
@@ -23,20 +24,26 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
         data = json.loads(text_data)
         message = data['message']
         chat_id = data['chat_id']
+        fullname, photo = await self.get_addition_data()
 
-        await self.add_message_to_chat(chat_id,message)
+        await self.add_message_to_chat(chat_id, message)
 
         recipient_id = await self.get_recipient_id(chat_id)
 
-        await self.send_to_user(f"user_{recipient_id}", chat_id, message)
+        await self.send_to_user(f"user_{recipient_id}", chat_id, message, fullname, photo)
 
-    async def send_to_user(self, recipient, chat_id, message):
-        await self.channel_layer.group_send(recipient, {'type': 'send.message', 'message': message, 'chat_id': chat_id})
+    async def send_to_user(self, recipient, chat_id, message, fullname, photo):
+        await self.channel_layer.group_send(recipient, {'type': 'send.message', 'message': message, 'chat_id': chat_id,
+                                                        'fullname': fullname, "photo": photo})
 
     async def send_message(self, event):
         message = event['message']
         chat_id = event['chat_id']
-        await self.send(text_data=json.dumps({"chat_id": chat_id, 'message': message}))
+        fullname = event['fullname']
+        photo = event['photo']
+
+        await self.send(
+            text_data=json.dumps({"chat_id": chat_id, 'message': message, 'fullname': fullname, "photo": photo}))
 
     @sync_to_async
     def get_user_id(self):
@@ -79,3 +86,15 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
         user = CustomUser.objects.get(user_id=self.user_id)
         user.is_active = status
         user.save()
+
+    @sync_to_async
+    def get_addition_data(self):
+        user = CustomUser.objects.get(user_id=self.user_id)
+        username = f"{user.first_name} {user.last_name}"
+
+        if user.photo:
+            photo = user.photo
+        else:
+            photo = STATIC_URL + "images/user.png"
+
+        return username, str(photo)

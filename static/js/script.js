@@ -230,9 +230,31 @@ window.addEventListener("load", (event) => {
 
     } else {
         
-        function add_last_message(chat_id, message){
-            
+        function add_last_message(chat_id, message, fullname, photo){
+
             let chat = document.getElementById(`chat__${chat_id}`);
+
+            if (!chat){
+                let chat_list = document.getElementById("chat__list");
+
+                let chatsItem = document.createElement('li');
+                chatsItem.classList += "chats__item";
+                
+                chatsItem.innerHTML = `
+                <a id="chat__${chat_id}" href="/${chat_id}" class="chats__link">
+                    <img src="${photo}" alt="user photo" class="chats__user-img">
+                    <div class="chats__text">
+                        <p class="chats__user-name user-name">${fullname}</p>
+                        <p class="chats__user-message">Немає повідомлення</p>
+                    </div>
+                    <div class="chats__notification notification-active"></div>
+                </a>
+                `
+
+                    chat_list.prepend(chatsItem);
+
+                    chat = document.getElementById(`chat__${chat_id}`);
+            }
 
             chat.getElementsByClassName("chats__user-message")[0].innerText  = message;  
 
@@ -308,7 +330,7 @@ window.addEventListener("load", (event) => {
                 chat.scrollTo(0, chat.scrollHeight);
             };
             
-            add_last_message(message.chat_id, message.message);
+            add_last_message(message.chat_id, message.message, message.fullname, message.photo);
           };
     }
 
