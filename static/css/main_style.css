@@ -79,6 +79,7 @@ html{
   --сolor-white: #F6F6F6;
 	--color-blue: #03d0cf;
 	--color-blue-dark: rgb(27, 185, 185, 1);
+	--color-light-black: #a19898;
 }
 /* :root{
   --color-black-07: rgba(0, 0, 0, 0.7);
@@ -123,12 +124,52 @@ html{
 
 .search-people{
 	position: absolute;
-	display: block;
 	transform: translateX(-300%);
+	background-color: var(--color-black);
 	transition: all .3s;
+	max-width: 570px;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	margin-left: -35px;
+}
+.search,
+.setting{
+	z-index: 5;
+}
+.search-people__input{
+	display: block;
+	background-color: transparent;
+	border: none;
+	border-bottom: 1px solid var(--сolor-white);
+	max-width: 300px;
+	width: 100%;
+	font-size: inherit;
+	color: var(--сolor-white);
+	padding: 10px;
+	margin-left: 35px;
+}
+.search-people__input::placeholder{
+	color: var(--color-light-black);
 }
 .search-people.active{
 	transform: translateX(0%);
+}
+.search-people__inner{
+	position: absolute;
+	top: 100px;
+	color: var(--color-black);
+	width: 100%;
+}
+.search-people__link{
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	background-color: #F6F6F6;
+	padding: 10px;
+	box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.20);
+	height: 100px;
 }
 
 .current-user__name,

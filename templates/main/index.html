@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="uk">
 {% load static %}
+
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -19,8 +20,9 @@
   <script src="{% static 'js/script.js' %}" defer></script>
 
 </head>
+
 <body>
-  
+
   <main class="chats__wrapper" style="background-image: url({% static 'images/chat-bg.svg' %});">
     <div class="chats">
 
@@ -31,37 +33,63 @@
           <img src="{% static 'images/search.svg' %}" alt="search icon" class="search">
           <img src="{% static 'images/setting.svg' %}" alt="setting icon" class="setting">
           {% csrf_token %}
-          <input class="search-people" type="text" readonly onchange="searchPeople(this)">
+          <div class="search-people">
+            <input class="search-people__input" type="text" placeholder="Name..." readonly
+              onchange="searchPeople(this)">
+              <div class="search-people__inner">
+                <ul class="search-people__list">
+                  <li class="search-people__item">
+                    <a id="" href="" class="search-people__link">
+                      <img src="{% static 'images/user.png' %}" alt="user photo" class="search-people__user-img">
+                      <p class="search-people__name">Abobus bobus</p>
+                    </a>
+                  </li>
+                  <li class="search-people__item">
+                    <a id="" href="" class="search-people__link">
+                      <img src="{% static 'images/user.png' %}" alt="user photo" class="search-people__user-img">
+                      <p class="search-people__name">Abobus bobus</p>
+                    </a>
+                  </li>
+                  <li class="search-people__item">
+                    <a id="" href="" class="search-people__link">
+                      <img src="{% static 'images/user.png' %}" alt="user photo" class="search-people__user-img">
+                      <p class="search-people__name">Abobus bobus</p>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+          </div>
         </div>
 
         <div class="sidebar__list list-chats">
           <ul id="chat__list" class="chats__list">
-              {% for chat in chats %}
-                <li class="chats__item">
-                  <a id="chat__{{ chat.chat_id }}" href="/{{chat.chat_id}}" class="chats__link">
-                    <img src="{% static 'images/user.png' %}" alt="user photo" class="chats__user-img">
-                    <div class="chats__text">
-                      <p class="chats__user-name user-name">{{ chat.user.first_name }} {{ chat.user.last_name }}</p>
-                      <p class="chats__user-message">{{ chat.last_message }}</p>
-                    </div>
-                    <div class="chats__notification notification-active">
-                    </div>
-                  </a>
-                </li>
-              {% empty %}
-                <p>У вас,поки,немає чатів...</p>
+            {% for chat in chats %}
+            <li class="chats__item">
+              <a id="chat__{{ chat.chat_id }}" href="/{{chat.chat_id}}" class="chats__link">
+                <img src="{% static 'images/user.png' %}" alt="user photo" class="chats__user-img">
+                <div class="chats__text">
+                  <p class="chats__user-name user-name">{{ chat.user.first_name }} {{ chat.user.last_name }}</p>
+                  <p class="chats__user-message">{{ chat.last_message }}</p>
+                </div>
+                <div class="chats__notification notification-active">
+                </div>
+              </a>
+            </li>
+            {% empty %}
+            <p>У вас,поки,немає чатів...</p>
             {% endfor %}
           </ul>
         </div>
-      
+
       </div>
-      
+
       <div id="main__chat" class="chats__correspondence correspondence">
-          {% block chat %}Для початку - оберіть чат...{% endblock %}
+        {% block chat %}Для початку - оберіть чат...{% endblock %}
       </div>
-    
+
     </div>
   </main>
 
 </body>
+
 </html>

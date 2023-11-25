@@ -1,3 +1,5 @@
+alert("Баг размером с ебало! Отправка пустых сообщений!");
+
 let invalid_emails = [".ru",".by"]
 
 function getCookie(name) {
@@ -338,10 +340,11 @@ window.addEventListener("load", (event) => {
 
 // search
 const searchButton = document.querySelector('.search');
-const searchInput = document.querySelector('.search-people');
+const searchBox = document.querySelector('.search-people');
+const searchInput = document.querySelector('.search-people__input');
 searchButton.addEventListener('click', function () {
-    searchInput.classList.toggle('active');
-    if(searchInput.classList.contains('active'))
+    searchBox.classList.toggle('active');
+    if(searchBox.classList.contains('active'))
     {
         searchInput.readOnly = false;
     }
@@ -352,11 +355,11 @@ searchButton.addEventListener('click', function () {
 
 const sidebarTop = document.querySelector('.current-user');
 document.addEventListener('click', (e) => {
-    if(searchInput.classList.contains('active'))
+    if(searchBox.classList.contains('active'))
     {
         const withinInput = e.composedPath().includes(sidebarTop);
         if(!withinInput) {
-            searchInput.classList.remove('active');
+            searchBox.classList.remove('active');
             if(searchInput.classList.contains('active'))
             {
                 searchInput.readOnly = false;
