@@ -23,6 +23,10 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         message = data['message']
+
+        if len(message) not in range(1,513) or not message:
+            return
+
         chat_id = data['chat_id']
         fullname, photo = await self.get_addition_data()
 

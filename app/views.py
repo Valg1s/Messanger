@@ -1,6 +1,5 @@
 import json
 from collections import defaultdict
-from itertools import chain
 from random import randint
 
 from django.conf import settings
@@ -12,8 +11,9 @@ from django.shortcuts import render, HttpResponse, Http404, redirect
 from django.template.loader import render_to_string
 from django.views import View
 
+from Messanger.settings import STATIC_URL
 from .forms import UserForm
-from .models import CustomUser, Chat
+from .models import CustomUser, Chat, Reaction, Message
 from .validators import CustomEmailValidator
 
 
@@ -243,25 +243,49 @@ class PeopleSearchView(View):
     def post(self, request):
         search_input = decode_request(request)['search_input']
 
-        account_name_search = CustomUser.objects.filter(account_name__startswith=search_input)
-        first_name_search = CustomUser.objects.filter(first_name__startswith=search_input)
-        last_name_search = CustomUser.objects.filter(last_name__startswith=search_input)
+        users = []
+
+        account_name_search = CustomUser.objects.filter(account_name__contains=search_input)
+
+        users.extend(account_name_search)
+
+        if len(users) < 3:
+            first_name_search = CustomUser.objects.filter(first_name__contains=search_input)
+
+            users.extend(first_name_search)
+
+        if len(users) < 3:
+            last_name_search = CustomUser.objects.filter(last_name__contains=search_input)
+
+            users.extend(last_name_search)
 
         data = {"users": []}
-        for user in chain(account_name_search, first_name_search, last_name_search):
+
+        found_users = [request.user.user_id]
+
+        for user in users:
+            if user.user_id in found_users:
+                continue
+
             data["users"].append(
                 {
                     "user_id": user.user_id,
                     "user_name": f"{user.first_name} {user.last_name}",
                     "user_account_name": user.account_name,
+                    "user_photo": user.photo or STATIC_URL + "images/user.png"
                 }
             )
+
+            found_users.append(user.user_id)
+
+            if len(data["users"]) >= 3:
+                break
 
         return HttpResponse(json.dumps(data), content_type='application/json')
 
 
 class CreateChatView(View):
-    def get(self,request,user_id):
+    def get(self, request, user_id):
         try:
             second_user = CustomUser.objects.get(pk=user_id)
         except:
@@ -269,4 +293,23 @@ class CreateChatView(View):
 
         chat = Chat.create(request.user, second_user)
 
-        return redirect("chat",chat_id=chat.chat_id)
+        return redirect("chat", chat_id=chat.chat_id)
+
+
+class MakeReactionView(View):
+
+    def post(self, request):
+        input_data = decode_request(request)
+
+        user = CustomUser.objects.get(pk=int(input_data['user']))
+        message = Message.objects.get(pk=input_data['message'])
+
+        try:
+            exist_reaction = Reaction.objects.get(user=user, message=message)
+
+        except Reaction.DoesNotExist:
+            Reaction.create(user, message)
+        else:
+            exist_reaction.delete()
+
+        return HttpResponse(200)

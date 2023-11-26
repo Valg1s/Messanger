@@ -12,5 +12,6 @@ urlpatterns = [
     re_path(r'^(?P<chat_id>\d+)/$', views.ChatView.as_view(), name="chat"),
     re_path(r'send_code/', views.SendEmailView.as_view()),
     re_path("^search_users/", views.PeopleSearchView.as_view()),
-    re_path("^create_new_chat/(?P<user_id>\d+)", views.CreateChatView.as_view())
+    re_path("^create_new_chat/(?P<user_id>\d+)", views.CreateChatView.as_view()),
+    re_path("^make_reaction_on_message/", views.MakeReactionView.as_view())
 ]

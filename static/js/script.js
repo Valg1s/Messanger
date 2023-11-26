@@ -1,5 +1,3 @@
-alert("Баг размером с ебало! Отправка пустых сообщений!");
-
 let invalid_emails = [".ru",".by"]
 
 function getCookie(name) {
@@ -284,7 +282,7 @@ window.addEventListener("load", (event) => {
 
                 let message = document.getElementById('chat__message');
                 
-                if ( 1 > message.value.length > 512){
+                if ( 1 > message.value.length > 512  || message.value == ""){
                     return
                 }
 
@@ -339,17 +337,36 @@ window.addEventListener("load", (event) => {
 });
 
 // search
+
+let timer;
+
+const timeout = 500;
+
+const keyupHeandler = () => {
+    clearTimeout(timer);
+
+    timer = setTimeout(() => {
+        searchPeople(searchInput)
+    }, timeout);
+} 
+
 const searchButton = document.querySelector('.search');
 const searchBox = document.querySelector('.search-people');
 const searchInput = document.querySelector('.search-people__input');
+const people_list = document.getElementById("search-people-list")
 searchButton.addEventListener('click', function () {
     searchBox.classList.toggle('active');
     if(searchBox.classList.contains('active'))
-    {
+    {   
         searchInput.readOnly = false;
+        searchInput.focus();
+
+        searchInput.addEventListener("keyup", keyupHeandler);
     }
     else{
         searchInput.readOnly = true;
+        
+        searchInput.removeEventListener("keyup", keyupHeandler);
     }
 })
 
@@ -366,6 +383,8 @@ document.addEventListener('click', (e) => {
             }
             else{
                 searchInput.readOnly = true;
+
+                searchInput.removeEventListener("keyup", keyupHeandler);
             }
         }
     }
@@ -373,7 +392,12 @@ document.addEventListener('click', (e) => {
 
 function searchPeople(input){
     let input_text = input.value;
-    let people_list = document.getElementById("searched-people") 
+    
+    if (input_text == ""){
+        people_list.innerHTML = '';
+
+        return;
+    }
 
     let csrf_token = getCookie('csrftoken');
     let data = {
@@ -391,23 +415,45 @@ function searchPeople(input){
         ).then((response) => {
             people_list.innerHTML = '';
 
-        response.data.forEach(element => {
-            let option = document.createElement('option');
-            option.value = `${element.user_id} ${element.user_name} ${element.user_account_name}`;
-            
-            // Create a link element
-            let link = document.createElement('a');
-            link.href = '#';
-            link.textContent = `${element.user_id} ${element.user_name} ${element.user_account_name}`;
+            response.data.users.forEach(element => {
+                let list_item = document.createElement("li");
 
-            // Append the link to the option
-            option.appendChild(link);
+                list_item.classList += 'search-people__item';
 
-            // Append the option to the datalist
-            people_list.appendChild(option);
-        })
+                list_item.innerHTML = `
+                    <a id="" href="/create_new_chat/${element.user_id}" class="search-people__link">
+                      <img src="/${element.user_photo}" alt="user photo" class="search-people__user-img">
+                      <p class="search-people__name">${element.user_name}</p>
+                    </a>
+                `
+
+                people_list.appendChild(list_item);
+            }
+        )
         }).catch((error) => {
             console.log(error)
         }) 
 
+}
+
+function makeReaction(paragraph, message_id,user_id, place){
+    paragraph.classList.toggle("like-message");
+    paragraph.classList.toggle(`like-${place}`);
+
+    data = {
+        message: message_id,
+        user: user_id,
+    }
+
+    let csrf_token = getCookie('csrftoken');
+
+    axios.post(
+        "/make_reaction_on_message/",
+        data,
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                "X-CSRFToken": csrf_token,
+            }
+        })
 }

@@ -17,9 +17,15 @@
               <p class="messages__time">{{ messages.0.date_of_sending|date:'j.m'}}</p>
               {% for message in messages %}
                   {% if message.user.user_id == user.user_id %}
-                      <p class="messages__curent-user user-massage">{{ message.text }}</p>
+                      <p  ondblclick="makeReaction(this, {{message.message_id}},{{request.user.user_id}}, 'left')" class="messages__curent-user user-massage
+                      {% if message.reaction_set.exists%} like-message like-left {% endif %}">
+                          {{ message.text }}
+                      </p>
                   {% else %}
-                      <p class="messages__other-user user-massage">{{ message.text }}</p>
+                      <p ondblclick="makeReaction(this, {{message.message_id}},{{request.user.user_id}}, 'right')" class="messages__other-user user-massage
+                       {% if message.reaction_set.exists%} like-message like-right {% endif %}">
+                          {{ message.text }}
+                      </p>
                   {% endif %}
               {% endfor %}
             </div>
