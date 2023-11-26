@@ -280,17 +280,18 @@ window.addEventListener("load", (event) => {
             send_button.addEventListener("click" , (event) => {
                 event.preventDefault();
 
-                let message = document.getElementById('chat__message');
+                let message = document.getElementById('chat__message').value;
                 
-                if ( 1 > message.value.length > 512  || message.value == ""){
+                if ( 1 > message.length > 512  || message.trim() == ""){
                     return
                 }
 
+                
                 let chat_id = window.location.pathname.slice(1,-1);
 
                 let data = {
                     "chat_id": chat_id,
-                    "message": message.value,
+                    "message": message,
                 }
 
                 sk.send(JSON.stringify(data));
@@ -300,11 +301,11 @@ window.addEventListener("load", (event) => {
                     no_messages_p.remove();
                 }
                 
-                document.getElementById("new__messages").innerHTML += `<p class="messages__curent-user user-massage">${message.value}</p>`
+                document.getElementById("new__messages").innerHTML += `<p class="messages__curent-user user-massage">${message}</p>`
                 
                 add_last_message(chat_id, message.value);
 
-                message.value = "";
+                message = "";
 
                 let chat = document.querySelector(".correspondence__message");
 

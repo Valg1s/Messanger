@@ -10,6 +10,8 @@ from django.core.mail import get_connection, EmailMessage
 from django.shortcuts import render, HttpResponse, Http404, redirect
 from django.template.loader import render_to_string
 from django.views import View
+from django.core.mail import EmailMultiAlternatives
+from django.utils.html import strip_tags
 
 from Messanger.settings import STATIC_URL
 from .forms import UserForm
@@ -44,6 +46,10 @@ def send_email_code(request, email) -> None:
     :param email: user email
     :return: None
     """
+    code = get_random_code(request)
+
+    html_message = render_to_string("mail.html",{"code": code})
+    plain_message = strip_tags(html_message)
 
     with get_connection(
             host=settings.EMAIL_HOST,
@@ -53,18 +59,20 @@ def send_email_code(request, email) -> None:
             use_tls=settings.EMAIL_USE_TLS
     ) as connection:
         subject = 'Код для месенджера'
-        code = get_random_code(request)
-        message = f"Вітаємо! \n\n" \
-                  f"Ваш код,для входу в аккаунт меседжера: {code} \n" \
-                  f"Будь лакска, не повідомляйте цей код третім особам." \
-                  f" Якщо ви не робили запит на код,то просто проігноруйте цей лист! \n\n" \
-                  f"Дякуємо,з повагою \n" \
-                  f"команда розробників месенджера."
+        # message = f"Вітаємо! \n\n" \
+        #           f"Ваш код,для входу в аккаунт меседжера: {code} \n" \
+        #           f"Будь лакска, не повідомляйте цей код третім особам." \
+        #           f" Якщо ви не робили запит на код,то просто проігноруйте цей лист! \n\n" \
+        #           f"Дякуємо,з повагою \n" \
+        #           f"команда розробників месенджера."
 
         email_from = settings.EMAIL_HOST_USER
         recipient_list = [email]
 
-        EmailMessage(subject, message, email_from, recipient_list, connection=connection).send()
+
+        mail = EmailMessage(subject, html_message, email_from, recipient_list, connection=connection)
+        mail.content_subtype = "html"
+        mail.send()
 
 
 def get_context_for_chat(current_user):
