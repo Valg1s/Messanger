@@ -1,11 +1,21 @@
+import base64
 import json
 
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
+from cryptography.fernet import Fernet
 from django.contrib.sessions.models import Session
 
-from Messanger.settings import STATIC_URL, MEDIA_URL
+from Messanger.settings import STATIC_URL, SECRET_KEY
 from app.models import CustomUser, Chat, Message
+
+invalid_chars = ['^', '%', '#', '@', '&', '!', '$', '(', ')']
+
+secret_key = "".join(char for char in SECRET_KEY if char not in invalid_chars)
+
+key = base64.urlsafe_b64encode(secret_key[-32:].encode("utf-8"))
+
+fer = Fernet(key)
 
 
 class ChatWebSocket(AsyncJsonWebsocketConsumer):
@@ -24,7 +34,7 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
         data = json.loads(text_data)
         message = data['message'].strip()
 
-        if len(message) not in range(1,513):
+        if len(message) not in range(1, 513):
             return
 
         if not message:
@@ -79,12 +89,18 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
 
         return recipient_id.user_id
 
+    @staticmethod
+    def encrypt_message(message):
+        return fer.encrypt(message.encode('utf-8'))
+
     @sync_to_async
     def add_message_to_chat(self, chat_id, message_text):
         chat = Chat.objects.get(chat_id=chat_id)
         user = CustomUser.objects.get(user_id=self.user_id)
 
-        message = Message.create(user, message_text)
+        message_text = self.encrypt_message(message_text)
+
+        message = Message.create(user, message_text.decode("utf-8"))
 
         chat.messages.add(message.message_id)
 

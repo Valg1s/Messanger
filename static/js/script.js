@@ -281,6 +281,7 @@ window.addEventListener("load", (event) => {
                 event.preventDefault();
 
                 let message = document.getElementById('chat__message').value;
+                document.getElementById('chat__message').value = "";
                 
                 if ( 1 > message.length > 512  || message.trim() == ""){
                     return
@@ -303,7 +304,7 @@ window.addEventListener("load", (event) => {
                 
                 document.getElementById("new__messages").innerHTML += `<p class="messages__curent-user user-massage">${message}</p>`
                 
-                add_last_message(chat_id, message.value);
+                add_last_message(chat_id, message);
 
                 message = "";
 

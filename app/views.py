@@ -1,6 +1,7 @@
 import json
 from collections import defaultdict
 from random import randint
+import base64
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login
@@ -10,13 +11,14 @@ from django.core.mail import get_connection, EmailMessage
 from django.shortcuts import render, HttpResponse, Http404, redirect
 from django.template.loader import render_to_string
 from django.views import View
-from django.core.mail import EmailMultiAlternatives
 from django.utils.html import strip_tags
+
 
 from Messanger.settings import STATIC_URL
 from .forms import UserForm
 from .models import CustomUser, Chat, Reaction, Message
 from .validators import CustomEmailValidator
+from .consumers import fer
 
 
 def decode_request(request):
@@ -49,7 +51,6 @@ def send_email_code(request, email) -> None:
     code = get_random_code(request)
 
     html_message = render_to_string("mail.html",{"code": code})
-    plain_message = strip_tags(html_message)
 
     with get_connection(
             host=settings.EMAIL_HOST,
@@ -59,16 +60,9 @@ def send_email_code(request, email) -> None:
             use_tls=settings.EMAIL_USE_TLS
     ) as connection:
         subject = 'Код для месенджера'
-        # message = f"Вітаємо! \n\n" \
-        #           f"Ваш код,для входу в аккаунт меседжера: {code} \n" \
-        #           f"Будь лакска, не повідомляйте цей код третім особам." \
-        #           f" Якщо ви не робили запит на код,то просто проігноруйте цей лист! \n\n" \
-        #           f"Дякуємо,з повагою \n" \
-        #           f"команда розробників месенджера."
 
         email_from = settings.EMAIL_HOST_USER
         recipient_list = [email]
-
 
         mail = EmailMessage(subject, html_message, email_from, recipient_list, connection=connection)
         mail.content_subtype = "html"
@@ -86,7 +80,7 @@ def get_context_for_chat(current_user):
         message = chat.messages.last()
         last_message = "Повідомлень ще немає..."
         if message:
-            last_message = message.text
+            last_message = decode_message(message.text)
 
         chats.append({
             "chat_id": chat.chat_id,
@@ -220,6 +214,10 @@ class MessangerView(View):
         return render(request, "main/index.html", context=context)
 
 
+def decode_message(message):
+    return fer.decrypt(message.encode("utf-8")).decode("utf-8")
+
+
 class ChatView(View):
     def get(self, request, chat_id):
         current_user = request.user
@@ -233,6 +231,7 @@ class ChatView(View):
 
         for message in chat.messages.all():
             date = message.date_of_sending.date()
+            message.text = decode_message(message.text)
             messages_by_date[date].append(message)
 
         messages_by_day = list(messages_by_date.values())
