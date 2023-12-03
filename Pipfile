@@ -34,7 +34,6 @@ typing-extensions = "==4.6.2"
 tzdata = "==2023.3"
 "zope.interface" = "==6.0"
 pycryptodome = "*"
-django-cryptography = "*"
 
 [dev-packages]
 

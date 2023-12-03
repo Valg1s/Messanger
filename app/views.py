@@ -11,7 +11,6 @@ from django.core.mail import get_connection, EmailMessage
 from django.shortcuts import render, HttpResponse, Http404, redirect
 from django.template.loader import render_to_string
 from django.views import View
-from django.utils.html import strip_tags
 
 
 from Messanger.settings import STATIC_URL

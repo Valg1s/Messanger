@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
 from django.utils import timezone
-from django_cryptography.fields import encrypt
 
 
 class CustomUserManager(BaseUserManager):
