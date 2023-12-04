@@ -361,5 +361,15 @@ html{
 	margin-bottom: 20px;
 }
 .setting-photo{
-	max-width: 150px;
+	border-radius: 50%;
+    width: 150px;
+    height: 150px;
+}
+
+
+
+img.chats__user-img, img.current-user__img{
+    border-radius: 50%;
+    width: 75px;
+    height: 75px;
 }

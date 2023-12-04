@@ -54,6 +54,16 @@ function checkError(text) {
     }
   }
 
+  function openPopupForCode(){
+    Swal.fire({
+        icon:"success",
+        title: "Супер!",
+        html: "Код відправляється вам на пошту, зачекайте секунду. Якщо лист не прийшов, перегляньте папку 'Спам'",
+        timer: 2000,
+        showConfirmButton: false,
+    })
+  }
+
 window.addEventListener("load", (event) => {
     if (window.location.pathname == "/auth/") {
         let login_btn = document.getElementById("login__btn");
@@ -95,20 +105,35 @@ window.addEventListener("load", (event) => {
                             "X-CSRFToken": csrf_token,
                         }
                     },
+
+
                 ).then((response) => {
+                    if (response.data["page"] == "check"){
+                        openPopupForCode();
 
-                    document.getElementById("body").innerHTML = response.data["html"];
+                        axios.post("/send_code/",data,
+                            {
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    "X-CSRFToken": csrf_token,
+                                }
+                            },).then((new_response) => {
+                                document.getElementById("body").innerHTML = response.data["html"];
 
-                    if (response.data["page"] == "registration") {
+                                document.getElementById("check__log").addEventListener("click", sendCodeData);
+                                document.getElementById("check__sendcode").addEventListener("click", sendCodeAgain);
+                            })
+                    }else{
+                        document.getElementById("body").innerHTML = response.data["html"];
+
                         document.getElementById("register__email").value = email;
-
+            
                         document.getElementById("register__btn").addEventListener("click", sendRegistrationData);
-                    } else if (response.data["page"] == "check") {
-                        document.getElementById("check__log").addEventListener("click", sendCodeData);
-                        document.getElementById("check__sendcode").addEventListener("click", sendCodeAgain);
                     }
 
+
                 }).catch((error) => {
+                    console.log(error);
                     activate_error(error.response.data.message);
                 })
             }else{
@@ -142,6 +167,7 @@ window.addEventListener("load", (event) => {
 
                 let csrf_token = getCookie('csrftoken');
 
+                openPopupForCode();
                 axios.post('/register_user/',
                     data,
                     {

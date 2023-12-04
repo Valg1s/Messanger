@@ -1,10 +1,9 @@
 import json
 from collections import defaultdict
 from random import randint
-import base64
 
 from django.conf import settings
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.core.mail import get_connection, EmailMessage
@@ -12,12 +11,11 @@ from django.shortcuts import render, HttpResponse, Http404, redirect
 from django.template.loader import render_to_string
 from django.views import View
 
-
 from Messanger.settings import STATIC_URL
+from .consumers import fer
 from .forms import UserForm
 from .models import CustomUser, Chat, Reaction, Message
 from .validators import CustomEmailValidator
-from .consumers import fer
 
 
 def decode_request(request):
@@ -49,7 +47,7 @@ def send_email_code(request, email) -> None:
     """
     code = get_random_code(request)
 
-    html_message = render_to_string("mail.html",{"code": code})
+    html_message = render_to_string("mail.html", {"code": code})
 
     with get_connection(
             host=settings.EMAIL_HOST,
@@ -139,8 +137,6 @@ class CheckUserAccountView(View):
             request.session['email'] = email
 
             if user:
-                send_email_code(request, email)
-
                 context = {
                     "email": email,
                 }
@@ -319,3 +315,52 @@ class MakeReactionView(View):
             exist_reaction.delete()
 
         return HttpResponse(200)
+
+
+class LogoutView(View):
+    def post(self, request):
+        try:
+            user = CustomUser.objects.get(user_id=request.user.user_id)
+
+            if not user.is_authenticated:
+                raise ValueError
+        except:
+            return HttpResponse(status=400)
+        else:
+            logout(request)
+
+            return redirect("auth")
+
+
+class UpdateDataView(View):
+    def post(self, request):
+        try:
+            user = CustomUser.objects.get(user_id=request.user.user_id)
+        except:
+            return HttpResponse(status=400)
+
+        first_name = request.POST["first_name"]
+        last_name = request.POST["last_name"]
+        account_name = request.POST["account_name"]
+        photo = request.FILES["photo"]
+
+        if first_name and first_name != user.first_name:
+            user.first_name = first_name
+
+        if last_name and last_name != user.last_name:
+            user.last_name = last_name
+
+        if account_name and account_name != user.account_name:
+            try:
+                CustomUser.objects.get(account_name=account_name)
+            except:
+                user.account_name = account_name
+
+        if photo:
+            user.photo = photo
+
+        user.save()
+
+        return redirect(request.path)
+
+
