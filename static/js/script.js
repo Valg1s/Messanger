@@ -459,3 +459,10 @@ function makeReaction(paragraph, message_id,user_id, place){
             }
         })
 }
+
+// popup
+let settingBtn = document.querySelector('.setting');
+let settingBox = document.querySelector('.settings-box');
+settingBtn.addEventListener("click", () => {
+    settingBox.classList.toggle('active');
+});

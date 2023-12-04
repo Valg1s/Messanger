@@ -344,3 +344,22 @@ html{
   position: sticky;
   bottom: 0;
 }
+
+.settings-box{
+	display: none;
+  position: absolute;
+  padding: 20px;
+	top: 50%;
+	left: 50%;
+	background: #464242;
+}
+.settings-box.active{
+	display: block;
+}
+.settings-box input{
+  display: block;
+	margin-bottom: 20px;
+}
+.setting-photo{
+	max-width: 150px;
+}
