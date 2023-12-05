@@ -339,6 +339,7 @@ class UpdateDataView(View):
         except:
             return HttpResponse(status=400)
 
+        url = request.POST['url']
         first_name = request.POST["first_name"]
         last_name = request.POST["last_name"]
         account_name = request.POST["account_name"]
@@ -361,6 +362,6 @@ class UpdateDataView(View):
 
         user.save()
 
-        return redirect(request.path)
+        return redirect(url)
 
 

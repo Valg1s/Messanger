@@ -25,6 +25,7 @@
   <div class="settings-box">
     <form class="settings-form" action="{% url 'update' %}", method="POST" enctype="multipart/form-data">
       {% csrf_token %}
+      <input type="hidden" name="url" value="{{request.path}}">
       <img class="setting-photo"
          {% if request.user.photo %}
             src="{% get_media_prefix %}{{request.user.photo}}"
