@@ -33,17 +33,21 @@
             src = "{% static 'images/user.png' %}"
          {% endif %}
       alt="photo-user">
-      <label for="settings_fname">Ім'я</label>
-      <input id="settings_fname" name="first_name" class="settings-input" type="text" autocomplete="off" value="{{request.user.first_name}}">
-      <label for="settings_lname">Прізвище</label>
-      <input id="settings_lname" name="last_name" class="settings-input" type="text" autocomplete="off" value="{{request.user.last_name}}">
-      <label for="settings_account_name">Нікнейм</label>
+      <div class="settings-box__inner">
+        <label class="settings-lable" for="settings_fname">Ім'я</label>
+        <input id="settings_fname" name="first_name" class="settings-input" type="text" autocomplete="off" value="{{request.user.first_name}}">
+      </div>
+      <div class="settings-box__inner">
+        <label class="settings-lable" for="settings_lname">Прізвище</label>
+        <input id="settings_lname" name="last_name" class="settings-input" type="text" autocomplete="off" value="{{request.user.last_name}}">
+      </div>
+      <label class="settings-lable" for="settings_account_name">Нікнейм</label>
       <input id="settings_account_name" name="account_name" class="settings-input" autocomplete="off" type="text"
          {% if request.user.account_name %}
             value ="{{request.user.account_name}}"
          {% endif %}
       >
-      <label for="settings_photo" >Фото</label>
+      <label class="settings-lable" for="settings_photo" >Фото</label>
       <input id="settings_photo" autocomplete="off" name="photo" class="settings-input" type="file">
       <button class="settings-btn">Зберегти</button>
     </form>

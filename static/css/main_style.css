@@ -351,7 +351,8 @@ html{
   padding: 20px;
 	top: 50%;
 	left: 50%;
-	background: #464242;
+	transform: translate(-50%, -50%);
+	background: var(--color-black);
 }
 .settings-box.active{
 	display: block;
@@ -361,12 +362,47 @@ html{
 	margin-bottom: 20px;
 }
 .setting-photo{
+	display: block;
 	border-radius: 50%;
-    width: 150px;
-    height: 150px;
+	width: 150px;
+	height: 150px;
+	margin: 0 auto;
+	margin-bottom: 20px;
 }
-
-
+.settings-lable{
+	color: #fff;
+	font-size: 16px;
+}
+.settings-input{
+	background-color: transparent;
+	color: var(--сolor-white);
+	border: none;
+	border-bottom: 1px solid #fff;
+	padding: 5px;
+	font-size: 20px;
+	/* margin: 0 auto; */
+}
+.settings-box__inner{
+	margin: 0 auto;
+}
+#settings_photo{
+	display: none;
+}
+.settings-btn{
+	display: block;
+	background-color: var(--color-blue);
+	border-radius: 5px;
+	border: none;
+	font-size: 24px;
+	padding: 5px 18px;
+	color: var(--сolor-white);
+	margin: 10px auto;
+	cursor: pointer;
+	transition: background .3s;
+}
+.settings-btn:hover{
+	background-color: var(--color-blue-dark);
+}
 
 img.chats__user-img, img.current-user__img{
     border-radius: 50%;
