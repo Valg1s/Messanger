@@ -33,15 +33,24 @@ function email_validation(email) {
 function checkError(text) {
     let name = text.getAttribute('id');
     let x = document.getElementById(`for-${name}`);
+    let ruError = document.getElementById('for-ru__email');
     if(text.value.trim() === ""){
       // let x = `for-${name}`;
       x.classList.add('form-input__active');
     }
     else{
       x.classList.remove('form-input__active');
+    //   x.classList.remove('form-input__active');
     }
-    // alert(x)
-  }
+    if(!text.value.trim().endsWith(".ru", ".by"))
+    {
+        ruError.classList.remove('form-input__active');
+    }
+    else
+    {
+        ruError.classList.add('form-input__active'); 
+    }
+ }
   
   function checkErrors() {
     let inputs = document.querySelectorAll('.form-input');
