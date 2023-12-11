@@ -122,6 +122,13 @@ html{
   color: var(--сolor-white);
 }
 
+.chats__user-message{
+	max-width: 300px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 .search-people{
 	position: absolute;
 	transform: translateX(-300%);
@@ -346,9 +353,10 @@ html{
 }
 
 .settings-box{
+	position: relative;
 	display: none;
   position: absolute;
-  padding: 20px;
+  padding: 70px 150px;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
@@ -368,7 +376,41 @@ html{
 	height: 150px;
 	margin: 0 auto;
 	margin-bottom: 20px;
+	cursor: pointer;
 }
+.setting-photo:hover{
+
+}
+.close-form{
+	cursor: pointer;
+	position: absolute;
+	top: 30px;
+	right: 30px;
+	width: 30px;
+	height: 30px;
+	background-color: transparent;
+	border: none;
+}
+.close-form span{
+	position: relative;	
+}
+.close-form span::after,
+.close-form span::before{
+	position: absolute;
+	content: "";
+	height: 1px;
+	width: 30px;
+	top: 0;
+	left: -15px;
+	background-color: var(--сolor-white);
+}
+.close-form span::after{
+	transform: rotate(-45deg);
+}
+.close-form span::before{
+	transform: rotate(45deg);
+}
+
 .settings-lable{
 	color: #fff;
 	font-size: 16px;

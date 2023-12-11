@@ -501,3 +501,10 @@ let settingBox = document.querySelector('.settings-box');
 settingBtn.addEventListener("click", () => {
     settingBox.classList.toggle('active');
 });
+
+// close setting form
+let settingForm = document.querySelector('.settings-box');
+let closeSettingBtn = document.getElementById('close-form');
+closeSettingBtn.addEventListener('click', (e) => {
+    settingForm.classList.remove('active');
+})

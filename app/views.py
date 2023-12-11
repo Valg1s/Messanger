@@ -343,7 +343,7 @@ class UpdateDataView(View):
         first_name = request.POST["first_name"]
         last_name = request.POST["last_name"]
         account_name = request.POST["account_name"]
-        photo = request.FILES["photo"]
+        photo = request.FILES.get("photo")
 
         if first_name and first_name != user.first_name:
             user.first_name = first_name
