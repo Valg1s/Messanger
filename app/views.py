@@ -120,7 +120,7 @@ class CheckUserAccountView(View):
         email = decode_request(request)['email']
 
         if request.session.get("registered_data"):
-            request.session.remove("registered_data")
+            del request.session["registered_data"]
 
         email_validator = CustomEmailValidator()
 
