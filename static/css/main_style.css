@@ -116,6 +116,23 @@ html{
 	font-weight: 700;
 }
 
+#main__chat p.main__chat-notification{
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin: 0 auto;
+	font-size: 30px;
+}
+
+#chat__nomessages{
+	text-align: center;
+	font-size: 30px;
+	top: 50%;
+	left: 50%;
+	transform: translate(50% -50%);
+	position: absolute;
+}
+
 .current-user{
 	position: relative;
 	background-color: var(--color-black);
@@ -450,4 +467,34 @@ img.chats__user-img, img.current-user__img{
     border-radius: 50%;
     width: 75px;
     height: 75px;
+}
+
+.lable-photo{
+	position: relative;
+}
+
+.setting-photo__text{
+	position: absolute;
+	display: flex;
+	align-items: end;
+	justify-content: center;
+	background: linear-gradient(transparent 50%, var(--color-light-black) 50%);
+	color: var(--сolor-white);
+	padding: 5px;
+	bottom: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 150px;
+	height: 150px;
+	border-radius: 50%;
+	cursor: pointer;
+	transition: all .5s;
+	opacity: 0;
+}
+.setting-photo__text p{
+	padding-bottom: 30px;
+}
+.setting-photo__text:hover
+{
+	opacity: 1;
 }
