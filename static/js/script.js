@@ -277,7 +277,7 @@ window.addEventListener("load", (event) => {
                 
                 chatsItem.innerHTML = `
                 <a id="chat__${chat_id}" href="/${chat_id}" class="chats__link">
-                    <img src="${photo}" alt="user photo" class="chats__user-img">
+                    <img src="/media/${photo}" alt="user photo" class="chats__user-img">
                     <div class="chats__text">
                         <p class="chats__user-name user-name">${fullname}</p>
                         <p class="chats__user-message">Немає повідомлення</p>

@@ -122,6 +122,7 @@ html{
 	left: 50%;
 	margin: 0 auto;
 	font-size: 30px;
+	transform: translateX(50%);
 }
 
 #chat__nomessages{
@@ -129,7 +130,7 @@ html{
 	font-size: 30px;
 	top: 50%;
 	left: 50%;
-	transform: translate(50% -50%);
+	transform: translate(50%, -50%);
 	position: absolute;
 }
 
@@ -378,6 +379,7 @@ html{
 	left: 50%;
 	transform: translate(-50%, -50%);
 	background: var(--color-black);
+	z-index: 100;
 }
 .settings-box.active{
 	display: block;
@@ -497,4 +499,10 @@ img.chats__user-img, img.current-user__img{
 .setting-photo__text:hover
 {
 	opacity: 1;
+}
+
+.search-people__user-img{
+	width: 75px;
+	height: 75px;
+	border-radius: 50%;
 }

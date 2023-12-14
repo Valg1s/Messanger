@@ -11,7 +11,7 @@ from django.shortcuts import render, HttpResponse, Http404, redirect
 from django.template.loader import render_to_string
 from django.views import View
 
-from Messanger.settings import STATIC_URL
+from Messanger.settings import STATIC_URL, MEDIA_URL
 from .consumers import fer
 from .forms import UserForm
 from .models import CustomUser, Chat, Reaction, Message
@@ -265,6 +265,7 @@ class PeopleSearchView(View):
 
         found_users = [request.user.user_id]
 
+        print(users)
         for user in users:
             if user.user_id in found_users:
                 continue
@@ -274,7 +275,7 @@ class PeopleSearchView(View):
                     "user_id": user.user_id,
                     "user_name": f"{user.first_name} {user.last_name}",
                     "user_account_name": user.account_name,
-                    "user_photo": user.photo or STATIC_URL + "images/user.png"
+                    "user_photo": 'media/' + user.photo.name if user.photo.name else STATIC_URL + "images/user.png"
                 }
             )
 
@@ -283,6 +284,8 @@ class PeopleSearchView(View):
             if len(data["users"]) >= 3:
                 break
 
+        print(search_input)
+        print(account_name_search)
         return HttpResponse(json.dumps(data), content_type='application/json')
 
 
