@@ -4,17 +4,19 @@ from random import randint
 
 import django.http
 from django.conf import settings
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.core.mail import get_connection, EmailMessage
-from django.core.validators import validate_email
-from django.shortcuts import render, HttpResponse, Http404
+from django.shortcuts import render, HttpResponse, Http404, redirect
 from django.template.loader import render_to_string
 from django.views import View
 
+from Messanger.settings import STATIC_URL, MEDIA_URL
+from .consumers import fer
 from .forms import UserForm
-from .models import CustomUser, Chat
+from .models import CustomUser, Chat, Reaction, Message
+from .validators import CustomEmailValidator
 
 
 def decode_request(request: django.http.HttpRequest) -> dict:
@@ -50,6 +52,9 @@ def send_email_code(request, email) -> None:
     :param email: user email
     :return: None
     """
+    code = get_random_code(request)
+
+    html_message = render_to_string("mail.html", {"code": code})
 
     with get_connection(
             host=settings.EMAIL_HOST,
@@ -59,18 +64,13 @@ def send_email_code(request, email) -> None:
             use_tls=settings.EMAIL_USE_TLS
     ) as connection:
         subject = 'Код для месенджера'
-        code = get_random_code(request)
-        message = f"Вітаємо! \n\n" \
-                  f"Ваш код,для входу в аккаунт меседжера: {code} \n" \
-                  f"Будь лакска, не повідомляйте цей код третім особам." \
-                  f" Якщо ви не робили запит на код,то просто проігноруйте цей лист! \n\n" \
-                  f"Дякуємо,з повагою \n" \
-                  f"команда розробників месенджера."
 
         email_from = settings.EMAIL_HOST_USER
         recipient_list = [email]
 
-        EmailMessage(subject, message, email_from, recipient_list, connection=connection).send()
+        mail = EmailMessage(subject, html_message, email_from, recipient_list, connection=connection)
+        mail.content_subtype = "html"
+        mail.send()
 
 
 def get_context_for_chat(current_user: CustomUser) -> list:
@@ -90,7 +90,7 @@ def get_context_for_chat(current_user: CustomUser) -> list:
         message = chat.messages.last()
         last_message = "Повідомлень ще немає..."
         if message:
-            last_message = message.text
+            last_message = decode_message(message.text)
 
         chats.append({
             "chat_id": chat.chat_id,
@@ -139,20 +139,23 @@ class CheckUserAccountView(View):
         email = decode_request(request)['email']
 
         if request.session.get("registered_data"):
-            request.session.remove("registered_data")
+            del request.session["registered_data"]
+
+        email_validator = CustomEmailValidator()
 
         try:
-            validate_email(email)
-        except ValidationError:
-            result = HttpResponse(status=400)
+            email_validator(email)
+        except ValidationError as e:
+            data = {
+                "message": e.message,
+            }
+            result = HttpResponse(json.dumps(data), content_type='application/json', status=400)
         else:
             user = authenticate(request, email=email)
 
             request.session['email'] = email
 
             if user:
-                send_email_code(request, email)
-
                 context = {
                     "email": email,
                 }
@@ -237,6 +240,10 @@ class MessangerView(View):
         return render(request, "main/index.html", context=context)
 
 
+def decode_message(message):
+    return fer.decrypt(message.encode("utf-8")).decode("utf-8")
+
+
 class ChatView(View):
     """
     View for chat page
@@ -253,6 +260,7 @@ class ChatView(View):
 
         for message in chat.messages.all():
             date = message.date_of_sending.date()
+            message.text = decode_message(message.text)
             messages_by_date[date].append(message)
 
         messages_by_day = list(messages_by_date.values())
@@ -266,5 +274,131 @@ class ChatView(View):
 
         return render(request, "main/chat.html", context=context)
 
+
+class PeopleSearchView(View):
+    def post(self, request):
+        search_input = decode_request(request)['search_input']
+
+        users = []
+
+        account_name_search = CustomUser.objects.filter(account_name__contains=search_input)
+
+        users.extend(account_name_search)
+
+        if len(users) < 3:
+            first_name_search = CustomUser.objects.filter(first_name__contains=search_input)
+
+            users.extend(first_name_search)
+
+        if len(users) < 3:
+            last_name_search = CustomUser.objects.filter(last_name__contains=search_input)
+
+            users.extend(last_name_search)
+
+        data = {"users": []}
+
+        found_users = [request.user.user_id]
+
+        print(users)
+        for user in users:
+            if user.user_id in found_users:
+                continue
+
+            data["users"].append(
+                {
+                    "user_id": user.user_id,
+                    "user_name": f"{user.first_name} {user.last_name}",
+                    "user_account_name": user.account_name,
+                    "user_photo": 'media/' + user.photo.name if user.photo.name else STATIC_URL + "images/user.png"
+                }
+            )
+
+            found_users.append(user.user_id)
+
+            if len(data["users"]) >= 3:
+                break
+
+        print(search_input)
+        print(account_name_search)
+        return HttpResponse(json.dumps(data), content_type='application/json')
+
+
+class CreateChatView(View):
+    def get(self, request, user_id):
+        try:
+            second_user = CustomUser.objects.get(pk=user_id)
+        except:
+            return redirect("index")
+
+        chat = Chat.create(request.user, second_user)
+
+        return redirect("chat", chat_id=chat.chat_id)
+
+
+class MakeReactionView(View):
+
+    def post(self, request):
+        input_data = decode_request(request)
+
+        user = CustomUser.objects.get(pk=int(input_data['user']))
+        message = Message.objects.get(pk=input_data['message'])
+
+        try:
+            exist_reaction = Reaction.objects.get(user=user, message=message)
+
+        except Reaction.DoesNotExist:
+            Reaction.create(user, message)
+        else:
+            exist_reaction.delete()
+
+        return HttpResponse(200)
+
+
+class LogoutView(View):
+    def post(self, request):
+        try:
+            user = CustomUser.objects.get(user_id=request.user.user_id)
+
+            if not user.is_authenticated:
+                raise ValueError
+        except:
+            return HttpResponse(status=400)
+        else:
+            logout(request)
+
+            return redirect("auth")
+
+
+class UpdateDataView(View):
+    def post(self, request):
+        try:
+            user = CustomUser.objects.get(user_id=request.user.user_id)
+        except:
+            return HttpResponse(status=400)
+
+        url = request.POST['url']
+        first_name = request.POST["first_name"]
+        last_name = request.POST["last_name"]
+        account_name = request.POST["account_name"]
+        photo = request.FILES.get("photo")
+
+        if first_name and first_name != user.first_name:
+            user.first_name = first_name
+
+        if last_name and last_name != user.last_name:
+            user.last_name = last_name
+
+        if account_name and account_name != user.account_name:
+            try:
+                CustomUser.objects.get(account_name=account_name)
+            except:
+                user.account_name = account_name
+
+        if photo:
+            user.photo = photo
+
+        user.save()
+
+        return redirect(url)
 
 

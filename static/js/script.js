@@ -1,3 +1,5 @@
+let invalid_emails = [".ru",".by"]
+
 function getCookie(name) {
     var cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -29,17 +31,26 @@ function email_validation(email) {
 }
 
 function checkError(text) {
-    let name = text.getAttribute('id'); 
+    let name = text.getAttribute('id');
     let x = document.getElementById(`for-${name}`);
+    let ruError = document.getElementById('for-ru__email');
     if(text.value.trim() === ""){
       // let x = `for-${name}`;
       x.classList.add('form-input__active');
     }
     else{
       x.classList.remove('form-input__active');
+    //   x.classList.remove('form-input__active');
     }
-    // alert(x)
-  }
+    if(!text.value.trim().endsWith(".ru", ".by"))
+    {
+        ruError.classList.remove('form-input__active');
+    }
+    else
+    {
+        ruError.classList.add('form-input__active'); 
+    }
+ }
   
   function checkErrors() {
     let inputs = document.querySelectorAll('.form-input');
@@ -52,6 +63,16 @@ function checkError(text) {
     }
   }
 
+  function openPopupForCode(){
+    Swal.fire({
+        icon:"success",
+        title: "Супер!",
+        html: "Код відправляється вам на пошту, зачекайте секунду. Якщо лист не прийшов, перегляньте папку 'Спам'",
+        timer: 2000,
+        showConfirmButton: false,
+    })
+  }
+
 window.addEventListener("load", (event) => {
     if (window.location.pathname == "/auth/") {
         let login_btn = document.getElementById("login__btn");
@@ -62,6 +83,13 @@ window.addEventListener("load", (event) => {
             let email = document.getElementById("login__email").value;
 
             validation = email_validation(email);
+
+            let is_invalid_email = false
+
+            if (invalid_emails.some(ending=>email.endsWith(ending))){
+                validation = false
+                is_invalid_email = true
+            }
 
             if (validation) {
                 let expire_time = new Date();
@@ -86,24 +114,45 @@ window.addEventListener("load", (event) => {
                             "X-CSRFToken": csrf_token,
                         }
                     },
+
+
                 ).then((response) => {
+                    if (response.data["page"] == "check"){
+                        openPopupForCode();
 
-                    document.getElementById("body").innerHTML = response.data["html"];
+                        axios.post("/send_code/",data,
+                            {
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    "X-CSRFToken": csrf_token,
+                                }
+                            },).then((new_response) => {
+                                document.getElementById("body").innerHTML = response.data["html"];
 
-                    if (response.data["page"] == "registration") {
+                                document.getElementById("check__log").addEventListener("click", sendCodeData);
+                                document.getElementById("check__sendcode").addEventListener("click", sendCodeAgain);
+                            })
+                    }else{
+                        document.getElementById("body").innerHTML = response.data["html"];
+
                         document.getElementById("register__email").value = email;
-
+            
                         document.getElementById("register__btn").addEventListener("click", sendRegistrationData);
-                    } else if (response.data["page"] == "check") {
-                        document.getElementById("check__log").addEventListener("click", sendCodeData);
-                        document.getElementById("check__sendcode").addEventListener("click", sendCodeAgain);
                     }
 
+
                 }).catch((error) => {
-                    activate_error('login__email');
+                    console.log(error);
+                    activate_error(error.response.data.message);
                 })
             }else{
-                activate_error('login__email');
+                let error = 'login__email'
+
+                if (is_invalid_email){
+                    error = 'ru__email'
+                }
+
+                activate_error(error);
             }
         })
 
@@ -127,6 +176,7 @@ window.addEventListener("load", (event) => {
 
                 let csrf_token = getCookie('csrftoken');
 
+                openPopupForCode();
                 axios.post('/register_user/',
                     data,
                     {
@@ -215,9 +265,31 @@ window.addEventListener("load", (event) => {
 
     } else {
         
-        function add_last_message(chat_id, message){
-            
+        function add_last_message(chat_id, message, fullname, photo){
+
             let chat = document.getElementById(`chat__${chat_id}`);
+
+            if (!chat){
+                let chat_list = document.getElementById("chat__list");
+
+                let chatsItem = document.createElement('li');
+                chatsItem.classList += "chats__item";
+                
+                chatsItem.innerHTML = `
+                <a id="chat__${chat_id}" href="/${chat_id}" class="chats__link">
+                    <img src="/media/${photo}" alt="user photo" class="chats__user-img">
+                    <div class="chats__text">
+                        <p class="chats__user-name user-name">${fullname}</p>
+                        <p class="chats__user-message">Немає повідомлення</p>
+                    </div>
+                    <div class="chats__notification notification-active"></div>
+                </a>
+                `
+
+                    chat_list.prepend(chatsItem);
+
+                    chat = document.getElementById(`chat__${chat_id}`);
+            }
 
             chat.getElementsByClassName("chats__user-message")[0].innerText  = message;  
 
@@ -243,17 +315,19 @@ window.addEventListener("load", (event) => {
             send_button.addEventListener("click" , (event) => {
                 event.preventDefault();
 
-                let message = document.getElementById('chat__message');
+                let message = document.getElementById('chat__message').value;
+                document.getElementById('chat__message').value = "";
                 
-                if ( 1 > message.value.length > 512){
+                if ( 1 > message.length > 512  || message.trim() == ""){
                     return
                 }
 
+                
                 let chat_id = window.location.pathname.slice(1,-1);
 
                 let data = {
                     "chat_id": chat_id,
-                    "message": message.value,
+                    "message": message,
                 }
 
                 sk.send(JSON.stringify(data));
@@ -263,11 +337,11 @@ window.addEventListener("load", (event) => {
                     no_messages_p.remove();
                 }
                 
-                document.getElementById("new__messages").innerHTML += `<p class="messages__curent-user user-massage">${message.value}</p>`
+                document.getElementById("new__messages").innerHTML += `<p class="messages__curent-user user-massage">${message}</p>`
                 
-                add_last_message(chat_id, message.value);
+                add_last_message(chat_id, message);
 
-                message.value = "";
+                message = "";
 
                 let chat = document.querySelector(".correspondence__message");
 
@@ -293,10 +367,144 @@ window.addEventListener("load", (event) => {
                 chat.scrollTo(0, chat.scrollHeight);
             };
             
-            add_last_message(message.chat_id, message.message);
+            add_last_message(message.chat_id, message.message, message.fullname, message.photo);
           };
     }
 
 });
 
+// search
 
+let timer;
+
+const timeout = 500;
+
+const keyupHeandler = () => {
+    clearTimeout(timer);
+
+    timer = setTimeout(() => {
+        searchPeople(searchInput)
+    }, timeout);
+} 
+
+const searchButton = document.querySelector('.search');
+const searchBox = document.querySelector('.search-people');
+const searchInput = document.querySelector('.search-people__input');
+const people_list = document.getElementById("search-people-list")
+searchButton.addEventListener('click', function () {
+    searchBox.classList.toggle('active');
+    if(searchBox.classList.contains('active'))
+    {   
+        searchInput.readOnly = false;
+        searchInput.focus();
+
+        searchInput.addEventListener("keyup", keyupHeandler);
+    }
+    else{
+        searchInput.readOnly = true;
+        
+        searchInput.removeEventListener("keyup", keyupHeandler);
+    }
+})
+
+const sidebarTop = document.querySelector('.current-user');
+document.addEventListener('click', (e) => {
+    if(searchBox.classList.contains('active'))
+    {
+        const withinInput = e.composedPath().includes(sidebarTop);
+        if(!withinInput) {
+            searchBox.classList.remove('active');
+            if(searchInput.classList.contains('active'))
+            {
+                searchInput.readOnly = false;
+            }
+            else{
+                searchInput.readOnly = true;
+
+                searchInput.removeEventListener("keyup", keyupHeandler);
+            }
+        }
+    }
+})
+
+function searchPeople(input){
+    let input_text = input.value;
+    
+    if (input_text == ""){
+        people_list.innerHTML = '';
+
+        return;
+    }
+
+    let csrf_token = getCookie('csrftoken');
+    let data = {
+        "search_input": input_text,
+    }
+
+    axios.post("/search_users/",
+        data,
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                "X-CSRFToken": csrf_token,
+            }
+        },
+        ).then((response) => {
+            people_list.innerHTML = '';
+
+            response.data.users.forEach(element => {
+                let list_item = document.createElement("li");
+
+                list_item.classList += 'search-people__item';
+
+                list_item.innerHTML = `
+                    <a id="" href="/create_new_chat/${element.user_id}" class="search-people__link">
+                      <img src="/${element.user_photo}" alt="user photo" class="search-people__user-img">
+                      <p class="search-people__name">${element.user_name}</p>
+                    </a>
+                `
+
+                people_list.appendChild(list_item);
+            }
+        )
+        }).catch((error) => {
+            console.log(error)
+        }) 
+
+}
+
+function makeReaction(paragraph, message_id,user_id, place){
+    paragraph.classList.toggle("like-message");
+    paragraph.classList.toggle(`like-${place}`);
+
+    data = {
+        message: message_id,
+        user: user_id,
+    }
+
+    let csrf_token = getCookie('csrftoken');
+
+    axios.post(
+        "/make_reaction_on_message/",
+        data,
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                "X-CSRFToken": csrf_token,
+            }
+        })
+}
+
+// popup
+let settingBtn = document.querySelector('.setting');
+let settingBox = document.querySelector('.settings-box');
+settingBtn.addEventListener("click", () => {
+    settingBox.classList.toggle('active');
+});
+
+// close setting form
+let settingForm = document.querySelector('.settings-box');
+let closeSettingBtn = document.getElementById('close-form');
+closeSettingBtn.addEventListener('click', (e) => {
+    settingForm.classList.remove('active');
+})

@@ -1,10 +1,21 @@
+import base64
 import json
 
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
+from cryptography.fernet import Fernet
 from django.contrib.sessions.models import Session
 
+from Messanger.settings import STATIC_URL, SECRET_KEY
 from app.models import CustomUser, Chat, Message
+
+invalid_chars = ['^', '%', '#', '@', '&', '!', '$', '(', ')']
+
+secret_key = "".join(char for char in SECRET_KEY if char not in invalid_chars)
+
+key = base64.urlsafe_b64encode(secret_key[-32:].encode("utf-8"))
+
+fer = Fernet(key)
 
 
 class ChatWebSocket(AsyncJsonWebsocketConsumer):
@@ -39,16 +50,24 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
         """
 
         data = json.loads(text_data)
-        message = data['message']
-        chat_id = data['chat_id']
+        message = data['message'].strip()
 
-        await self.add_message_to_chat(chat_id,message)
+        if len(message) not in range(1, 513):
+            return
+
+        if not message:
+            return
+
+        chat_id = data['chat_id']
+        fullname, photo = await self.get_addition_data()
+
+        await self.add_message_to_chat(chat_id, message)
 
         recipient_id = await self.get_recipient_id(chat_id)
 
-        await self.send_to_user(f"user_{recipient_id}", chat_id, message)
+        await self.send_to_user(f"user_{recipient_id}", chat_id, message, fullname, photo)
 
-    async def send_to_user(self, recipient: "User", chat_id: int, message:str) -> None:
+    async def send_to_user(self, recipient, chat_id, message, fullname, photo):
         """
         Send message to group of users
         :param recipient: User
@@ -56,8 +75,8 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
         :param message: str user message
         :return:
         """
-
-        await self.channel_layer.group_send(recipient, {'type': 'send.message', 'message': message, 'chat_id': chat_id})
+        await self.channel_layer.group_send(recipient, {'type': 'send.message', 'message': message, 'chat_id': chat_id,
+                                                        'fullname': fullname, "photo": photo})
 
     async def send_message(self, event: dict) -> None:
         """
@@ -68,7 +87,11 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
 
         message = event['message']
         chat_id = event['chat_id']
-        await self.send(text_data=json.dumps({"chat_id": chat_id, 'message': message}))
+        fullname = event['fullname']
+        photo = event['photo']
+
+        await self.send(
+            text_data=json.dumps({"chat_id": chat_id, 'message': message, 'fullname': fullname, "photo": photo}))
 
     @sync_to_async
     def get_user_id(self) -> int:
@@ -108,6 +131,10 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
 
         return recipient_id.user_id
 
+    @staticmethod
+    def encrypt_message(message):
+        return fer.encrypt(message.encode('utf-8'))
+
     @sync_to_async
     def add_message_to_chat(self, chat_id: int, message_text: str) -> None:
         """
@@ -120,7 +147,9 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
         chat = Chat.objects.get(chat_id=chat_id)
         user = CustomUser.objects.get(user_id=self.user_id)
 
-        message = Message.create(user, message_text)
+        message_text = self.encrypt_message(message_text)
+
+        message = Message.create(user, message_text.decode("utf-8"))
 
         chat.messages.add(message.message_id)
 
@@ -135,3 +164,15 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
         user = CustomUser.objects.get(user_id=self.user_id)
         user.is_active = status
         user.save()
+
+    @sync_to_async
+    def get_addition_data(self):
+        user = CustomUser.objects.get(user_id=self.user_id)
+        username = f"{user.first_name} {user.last_name}"
+
+        if user.photo:
+            photo = user.photo
+        else:
+            photo = STATIC_URL + "images/user.png"
+
+        return username, str(photo)

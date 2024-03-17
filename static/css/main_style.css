@@ -79,6 +79,7 @@ html{
   --сolor-white: #F6F6F6;
 	--color-blue: #03d0cf;
 	--color-blue-dark: rgb(27, 185, 185, 1);
+	--color-light-black: #a19898;
 }
 /* :root{
   --color-black-07: rgba(0, 0, 0, 0.7);
@@ -99,6 +100,7 @@ html{
 .sidebar__list{
 	overflow-y: scroll;
 	height: calc(100vh - 100px);
+	background-color: #fff;
 }
 
 
@@ -114,9 +116,85 @@ html{
 	font-weight: 700;
 }
 
+#main__chat p.main__chat-notification{
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin: 0 auto;
+	font-size: 30px;
+	transform: translateX(50%);
+}
+
+#chat__nomessages{
+	text-align: center;
+	font-size: 30px;
+	top: 50%;
+	left: 50%;
+	transform: translate(50%, -50%);
+	position: absolute;
+}
+
 .current-user{
+	position: relative;
 	background-color: var(--color-black);
   color: var(--сolor-white);
+}
+
+.chats__user-message{
+	max-width: 300px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.search-people{
+	position: absolute;
+	transform: translateX(-300%);
+	background-color: var(--color-black);
+	transition: all .3s;
+	max-width: 570px;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	margin-left: -35px;
+}
+.search,
+.setting{
+	z-index: 5;
+}
+.search-people__input{
+	display: block;
+	background-color: transparent;
+	border: none;
+	border-bottom: 1px solid var(--сolor-white);
+	max-width: 300px;
+	width: 100%;
+	font-size: inherit;
+	color: var(--сolor-white);
+	padding: 10px;
+	margin-left: 35px;
+}
+.search-people__input::placeholder{
+	color: var(--color-light-black);
+}
+.search-people.active{
+	transform: translateX(0%);
+}
+.search-people__inner{
+	position: absolute;
+	top: 100px;
+	color: var(--color-black);
+	width: 100%;
+}
+.search-people__link{
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	background-color: #F6F6F6;
+	padding: 10px;
+	box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.20);
+	height: 100px;
 }
 
 .current-user__name,
@@ -290,4 +368,141 @@ html{
 .correspondence__input-box{
   position: sticky;
   bottom: 0;
+}
+
+.settings-box{
+	position: relative;
+	display: none;
+  position: absolute;
+  padding: 70px 150px;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background: var(--color-black);
+	z-index: 100;
+}
+.settings-box.active{
+	display: block;
+}
+.settings-box input{
+  display: block;
+	margin-bottom: 20px;
+}
+.setting-photo{
+	display: block;
+	border-radius: 50%;
+	width: 150px;
+	height: 150px;
+	margin: 0 auto;
+	margin-bottom: 20px;
+	cursor: pointer;
+}
+.setting-photo:hover{
+
+}
+.close-form{
+	cursor: pointer;
+	position: absolute;
+	top: 30px;
+	right: 30px;
+	width: 30px;
+	height: 30px;
+	background-color: transparent;
+	border: none;
+}
+.close-form span{
+	position: relative;	
+}
+.close-form span::after,
+.close-form span::before{
+	position: absolute;
+	content: "";
+	height: 1px;
+	width: 30px;
+	top: 0;
+	left: -15px;
+	background-color: var(--сolor-white);
+}
+.close-form span::after{
+	transform: rotate(-45deg);
+}
+.close-form span::before{
+	transform: rotate(45deg);
+}
+
+.settings-lable{
+	color: #fff;
+	font-size: 16px;
+}
+.settings-input{
+	background-color: transparent;
+	color: var(--сolor-white);
+	border: none;
+	border-bottom: 1px solid #fff;
+	padding: 5px;
+	font-size: 20px;
+	/* margin: 0 auto; */
+}
+.settings-box__inner{
+	margin: 0 auto;
+}
+#settings_photo{
+	display: none;
+}
+.settings-btn{
+	display: block;
+	background-color: var(--color-blue);
+	border-radius: 5px;
+	border: none;
+	font-size: 24px;
+	padding: 5px 18px;
+	color: var(--сolor-white);
+	margin: 10px auto;
+	cursor: pointer;
+	transition: background .3s;
+}
+.settings-btn:hover{
+	background-color: var(--color-blue-dark);
+}
+
+img.chats__user-img, img.current-user__img{
+    border-radius: 50%;
+    width: 75px;
+    height: 75px;
+}
+
+.lable-photo{
+	position: relative;
+}
+
+.setting-photo__text{
+	position: absolute;
+	display: flex;
+	align-items: end;
+	justify-content: center;
+	background: linear-gradient(transparent 50%, var(--color-light-black) 50%);
+	color: var(--сolor-white);
+	padding: 5px;
+	bottom: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 150px;
+	height: 150px;
+	border-radius: 50%;
+	cursor: pointer;
+	transition: all .5s;
+	opacity: 0;
+}
+.setting-photo__text p{
+	padding-bottom: 30px;
+}
+.setting-photo__text:hover
+{
+	opacity: 1;
+}
+
+.search-people__user-img{
+	width: 75px;
+	height: 75px;
+	border-radius: 50%;
 }

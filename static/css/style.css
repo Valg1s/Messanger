@@ -148,7 +148,7 @@ body{
 
 .form-login__error,
 .form-check__error{
-  margin-bottom: 70px;
+  margin-bottom: 5px;
 }
 
 .form-register__error{
