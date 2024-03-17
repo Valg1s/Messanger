@@ -1,8 +1,8 @@
 import json
 from collections import defaultdict
 from random import randint
-from datetime import datetime
 
+import django.http
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.core.exceptions import ValidationError
@@ -17,7 +17,13 @@ from .forms import UserForm
 from .models import CustomUser, Chat
 
 
-def decode_request(request):
+def decode_request(request: django.http.HttpRequest) -> dict:
+    """
+    Decode AJAX request
+    :param request: HTTP AJAX request
+    :return: dict
+    """
+
     body_unicode = request.body.decode('utf-8')
     received_json = json.loads(body_unicode)
 
@@ -67,7 +73,13 @@ def send_email_code(request, email) -> None:
         EmailMessage(subject, message, email_from, recipient_list, connection=connection).send()
 
 
-def get_context_for_chat(current_user):
+def get_context_for_chat(current_user: CustomUser) -> list:
+    """
+    Get all messages from chat
+    :param current_user: CustomUser
+    :return: list of dicts with all messages data
+    """
+
     user_chats = Chat.get_sorted_chats(current_user)
 
     chats = []
@@ -90,6 +102,9 @@ def get_context_for_chat(current_user):
 
 
 class RegisterUserView(View):
+    """
+    View for registration page
+    """
     def post(self, request):
         received_json = decode_request(request)
 
@@ -117,6 +132,9 @@ class RegisterUserView(View):
 
 
 class CheckUserAccountView(View):
+    """
+    View for check code page
+    """
     def post(self, request):
         email = decode_request(request)['email']
 
@@ -155,6 +173,9 @@ class CheckUserAccountView(View):
 
 
 class SendEmailView(View):
+    """
+    View for sending code(work with AJAX)
+    """
     def post(self, request):
         email = decode_request(request)['email']
         send_email_code(request, email)
@@ -163,6 +184,9 @@ class SendEmailView(View):
 
 
 class LoginUserView(View):
+    """
+    View for login page
+    """
     def post(self, request):
         code = decode_request(request)['code']
         sended_code = str(request.session['code'])
@@ -194,11 +218,17 @@ class LoginUserView(View):
 
 
 class AuthenticationView(View):
+    """
+    View for login page
+    """
     def get(self, request):
         return render(request, "auth/login.html")
 
 
 class MessangerView(View):
+    """
+    View for main messanger page
+    """
     def get(self, request):
         context = {
             "chats": get_context_for_chat(request.user),
@@ -208,6 +238,9 @@ class MessangerView(View):
 
 
 class ChatView(View):
+    """
+    View for chat page
+    """
     def get(self, request, chat_id):
         current_user = request.user
 

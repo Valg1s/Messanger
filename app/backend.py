@@ -24,6 +24,11 @@ class CustomBackend:
             return user
 
     def get_user(self, user_id):
+        """
+        Get user by user id
+        :param user_id: int
+        :return: CustomUser class instance
+        """
         try:
             return CustomUser.objects.get(user_id=user_id)
         except CustomUser.DoesNotExist:

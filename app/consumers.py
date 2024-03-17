@@ -8,18 +8,36 @@ from app.models import CustomUser, Chat, Message
 
 
 class ChatWebSocket(AsyncJsonWebsocketConsumer):
-    async def connect(self):
+    """
+    WebSocket class
+    """
+    async def connect(self) -> None:
+        """
+        Connection to WebSocket
+        :return:
+        """
+
         self.user_id = await self.get_user_id()
         await self.change_is_active(True)
         await self.channel_layer.group_add(f"user_{self.user_id}", self.channel_name)
         await self.accept()
 
-    async def disconnect(self, close_code):
+    async def disconnect(self, close_code) -> None:
+        """
+        Disconnect from WebSocket
+        :return:
+        """
         await self.change_is_active(False)
         await self.channel_layer.group_discard(f"user_{self.user_id}", self.channel_name)
         await self.close()
 
-    async def receive(self, text_data):
+    async def receive(self, text_data: str) -> None:
+        """
+        Receive text data to group
+        :param text_data: str user message
+        :return:
+        """
+
         data = json.loads(text_data)
         message = data['message']
         chat_id = data['chat_id']
@@ -30,16 +48,35 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
 
         await self.send_to_user(f"user_{recipient_id}", chat_id, message)
 
-    async def send_to_user(self, recipient, chat_id, message):
+    async def send_to_user(self, recipient: "User", chat_id: int, message:str) -> None:
+        """
+        Send message to group of users
+        :param recipient: User
+        :param chat_id: int chat id
+        :param message: str user message
+        :return:
+        """
+
         await self.channel_layer.group_send(recipient, {'type': 'send.message', 'message': message, 'chat_id': chat_id})
 
-    async def send_message(self, event):
+    async def send_message(self, event: dict) -> None:
+        """
+        Send json message
+        :param event: dict with data
+        :return:
+        """
+
         message = event['message']
         chat_id = event['chat_id']
         await self.send(text_data=json.dumps({"chat_id": chat_id, 'message': message}))
 
     @sync_to_async
-    def get_user_id(self):
+    def get_user_id(self) -> int:
+        """
+        Get session id from cookies and get user id by session id
+        :return: user id
+        """
+
         headers = dict(self.scope['headers'])
         cookie_header = headers[b'cookie'].decode('utf-8')
         cookies = cookie_header.split('; ')
@@ -58,7 +95,13 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
         return user.user_id
 
     @sync_to_async
-    def get_recipient_id(self, chat_id):
+    def get_recipient_id(self, chat_id: int) -> int:
+        """
+        Gt recipient id by chat id
+        :param chat_id: int chat id
+        :return: int recipient id
+        """
+
         current_user = CustomUser.objects.get(user_id=self.user_id)
         chat = Chat.objects.get(chat_id=chat_id)
         recipient_id = chat.get_second_user(current_user)
@@ -66,7 +109,14 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
         return recipient_id.user_id
 
     @sync_to_async
-    def add_message_to_chat(self, chat_id, message_text):
+    def add_message_to_chat(self, chat_id: int, message_text: str) -> None:
+        """
+        Save message into db
+        :param chat_id: int chat id
+        :param message_text: str user message
+        :return:
+        """
+
         chat = Chat.objects.get(chat_id=chat_id)
         user = CustomUser.objects.get(user_id=self.user_id)
 
@@ -75,7 +125,13 @@ class ChatWebSocket(AsyncJsonWebsocketConsumer):
         chat.messages.add(message.message_id)
 
     @sync_to_async
-    def change_is_active(self, status):
+    def change_is_active(self, status: bool) -> None:
+        """
+        change user status into db
+        :param status: bool user active status
+        :return:
+        """
+
         user = CustomUser.objects.get(user_id=self.user_id)
         user.is_active = status
         user.save()
